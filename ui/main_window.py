@@ -11,6 +11,8 @@ from library.library_manager import LibraryManager
 
 from structures.array_ds import ArrayDS
 
+#OOGA BOOGA CLASS
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
