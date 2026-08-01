@@ -1,6 +1,6 @@
 import os
 
-from library.song import Song
+from applications.music_player.song import Song
 
 class Scanner:
 

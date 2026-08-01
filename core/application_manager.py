@@ -1,5 +1,4 @@
-from core.application import Application
-
+from applications.music_player.music_player_app import MusicPlayerApplication
 
 class ApplicationManager:
 
@@ -7,11 +6,7 @@ class ApplicationManager:
 
         self._applications = [
 
-            Application(
-                "music",
-                "Music Playlist",
-                "Learn data structures through a playlist."
-            )
+            MusicPlayerApplication()
 
         ]
 

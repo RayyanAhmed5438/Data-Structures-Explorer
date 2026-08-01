@@ -7,9 +7,7 @@ from config.settings import SettingsManager
 from ui.pages.home_page import HomePage
 from ui.pages.workspace_page import WorkspacePage
 from core.application_manager import ApplicationManager
-from library.library_manager import LibraryManager
 
-from structures.array_ds import ArrayDS
 
 #OOGA BOOGA CLASS
 
@@ -27,24 +25,20 @@ class MainWindow(QMainWindow):
         self.application_manager = ApplicationManager()
         self.current_application = None
 
-        self.library_manager = LibraryManager()
-
-
+        
         self.create_menu()
         self.create_statusbar()
         self.create_pages()
 
         library_path = self.settings.get("library_path")
-        if library_path:
-            self.library_manager.load_library(library_path)
+
+        if library_path and self.current_application:
+            self.current_application.load_library(library_path)
+
             self.workspace_page.control_panel.set_library(library_path)
-
-            array = ArrayDS()
-
-            for song in self.library_manager.get_songs():
-                array.insert(song)
-
-            self.workspace_page.visualize_array(array)
+            self.workspace_page.visualize_array(
+                self.current_application.get_structure()
+            )
 
 
         self.connect_signals()
@@ -62,7 +56,19 @@ class MainWindow(QMainWindow):
 
     def open_application(self, application):
         self.current_application = application
+
         self.workspace_page.set_application(application)
+
+        library_path = self.settings.get("library_path")
+
+        if library_path:
+            application.load_library(library_path)
+
+            self.workspace_page.control_panel.set_library(library_path)
+            self.workspace_page.visualize_array(
+                application.get_structure()
+            )
+
         self.show_workspace()
 
     def choose_library(self):
@@ -73,17 +79,15 @@ class MainWindow(QMainWindow):
         )
 
         if folder:
-            self.library_manager.load_library(folder)
+            self.current_application.load_library(folder)
 
             self.settings.set("library_path", folder)
+
             self.workspace_page.control_panel.set_library(folder)
 
-            array = ArrayDS()
-
-            for song in self.library_manager.get_songs():
-                array.insert(song)
-
-            self.workspace_page.visualize_array(array)
+            self.workspace_page.visualize_array(
+                self.current_application.get_structure()
+            )
             
 
 
