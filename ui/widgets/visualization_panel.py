@@ -18,13 +18,14 @@ class VisualizationPanel(QWidget):
         self.view.setBackgroundBrush(Qt.black)
         self.view.setFrameShape(QFrame.NoFrame)
 
-        # self.view.setStyleSheet("""
-        # QGraphicsView {
-        #     border:none;
-        #     padding:20px;
-        #     background:black;
-        # }
-        # """)
+        self.view.setStyleSheet("""
+        QGraphicsView {
+            border:1px solid #444;
+            padding:20px;
+            background:#17181C;
+            border-radius: 10px;
+        }
+        """)
 
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)

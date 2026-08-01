@@ -8,14 +8,16 @@ class MusicPlayerApplication(Application):
         super().__init__(
             "music_player",
             "Music Player",
-            "Demostrate data structures using a music playlist"
+            "Demonstrate data structures using a music playlist"
         )
         self.library_manager = LibraryManager()
         self.current_structure = None
 
     def load_library(self, folder):
         self.library_manager.load_library(folder)
+        self.refresh_structure()
 
+    def refresh_structure(self):
         self.current_structure = ArrayDS()
 
         for song in self.library_manager.get_songs():
@@ -23,3 +25,6 @@ class MusicPlayerApplication(Application):
 
     def get_structure(self):
         return self.current_structure
+
+    def get_songs(self):
+        return self.library_manager.get_songs()

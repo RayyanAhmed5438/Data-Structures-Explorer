@@ -15,6 +15,45 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.setStyleSheet("""
+            QMainWindow{
+                background-color: #2B2D31;
+            }
+
+            QWidget{
+                background-color: #2B2D31;
+                color: #E8E8E8;
+                font-family: "Segoe UI";
+                font-size: 10pt;
+            }
+
+            QMenuBar {
+                background-color: #232428;
+                color: white;
+                spacing: 8px;
+                padding: 6px;
+                border-bottom: 1px solid #3A3A3A;
+            }
+
+            QMenuBar::item {
+                padding: 6px 12px;
+                border-radius: 6px;
+            }
+
+            QMenuBar::item:selected {
+                background: #3A3D42;
+            }
+
+            QMenu {
+                background-color: #2D2F34;
+                border: 1px solid #454545;
+            }
+
+            QMenu::item:selected {
+                background: #404249;
+            }
+        """)
+
         self.settings = SettingsManager()
         
 
@@ -27,19 +66,7 @@ class MainWindow(QMainWindow):
 
         
         self.create_menu()
-        self.create_statusbar()
         self.create_pages()
-
-        library_path = self.settings.get("library_path")
-
-        if library_path and self.current_application:
-            self.current_application.load_library(library_path)
-
-            self.workspace_page.control_panel.set_library(library_path)
-            self.workspace_page.visualize_array(
-                self.current_application.get_structure()
-            )
-
 
         self.connect_signals()
 
@@ -64,10 +91,7 @@ class MainWindow(QMainWindow):
         if library_path:
             application.load_library(library_path)
 
-            self.workspace_page.control_panel.set_library(library_path)
-            self.workspace_page.visualize_array(
-                application.get_structure()
-            )
+            self.refresh_workspace()
 
         self.show_workspace()
 
@@ -78,19 +102,22 @@ class MainWindow(QMainWindow):
             self, "Select your music folder"
         )
 
-        if folder:
+        if folder and self.current_application:
             self.current_application.load_library(folder)
 
             self.settings.set("library_path", folder)
 
-            self.workspace_page.control_panel.set_library(folder)
+            self.refresh_workspace()
 
-            self.workspace_page.visualize_array(
-                self.current_application.get_structure()
-            )
+    def refresh_workspace(self):
+        self.workspace_page.set_library(
+            self.settings.get("library_path")
+        )
+
+        self.workspace_page.visualize_array(
+            self.current_application.get_structure()
+        )
             
-
-
     def create_menu(self):
         menu = self.menuBar()
 
@@ -99,9 +126,7 @@ class MainWindow(QMainWindow):
         menu.addMenu("Data Structure")
         menu.addMenu("Help")
 
-    def create_statusbar(self):
-        self.statusBar().showMessage("Ready")
-
+    
     def create_pages(self):
         self.stack = QStackedWidget()
 

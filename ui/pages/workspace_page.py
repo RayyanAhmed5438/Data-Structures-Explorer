@@ -3,10 +3,14 @@ from PyQt5.QtWidgets import (
     QWidget,
     QPushButton,
     QVBoxLayout,
-    QSplitter
+    QSplitter,
+    QLabel,
+    QHBoxLayout
 )
 from ui.widgets.control_panel import ControlPanel
 from ui.widgets.visualization_panel import VisualizationPanel
+import os
+
 
 class WorkspacePage(QWidget):
 
@@ -14,8 +18,41 @@ class WorkspacePage(QWidget):
     chooseLibraryRequested = pyqtSignal()
 
     def __init__(self):
-
         super().__init__()
+
+        self.setStyleSheet("""
+        
+                QPushButton {
+        
+                    background-color: #32353B;
+                    border: 1px solid #4B4E55;
+                    border-radius: 8px;
+        
+                    padding: 8px 16px;
+        
+                    color: white;
+        
+                }
+        
+                QPushButton:hover {
+        
+                    background-color: #3C4047;
+        
+                }
+        
+                QPushButton:pressed {
+        
+                    background-color: #2A2C31;
+        
+                }
+                
+                QLabel{
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: #C7C7C7;
+                }
+        
+             """)
 
         self.application = None
 
@@ -25,24 +62,44 @@ class WorkspacePage(QWidget):
 
         self.application = application
 
-        self.control_panel.set_application(application)
-
     def setup_ui(self):
 
         main_layout = QVBoxLayout()
 
-        back_button = QPushButton(" <- Home")
-        back_button.clicked.connect(self.backRequested.emit)
+        self.back_button = QPushButton("←")
+
+        library_title = QLabel("Library: ")
+        self.library_label = QLabel("No Library selected")
+
+        self.choose_button = QPushButton("Choose Library")
+
+        toolbar = QHBoxLayout()
+        toolbar.setContentsMargins(10, 10, 10, 10)
+        toolbar.setSpacing(8)
+
+        toolbar.addWidget(self.back_button)
+        toolbar.addSpacing(12)
+
+        toolbar.addWidget(library_title)
+        toolbar.addWidget(self.library_label)
+
+        toolbar.addSpacing(20)
+
+        toolbar.addWidget(self.choose_button)
+
+        toolbar.addStretch()
+
+        self.back_button.clicked.connect(self.backRequested.emit)
 
         splitter = QSplitter()
 
         self.control_panel = ControlPanel()
         self.visualization_panel = VisualizationPanel()
 
-        self.control_panel.chooseLibraryRequested.connect(
-            self.chooseLibraryRequested.emit
+        self.choose_button.clicked.connect(
+             self.chooseLibraryRequested.emit
         )
-
+        
         splitter.addWidget(self.control_panel)
         splitter.addWidget(self.visualization_panel)
 
@@ -50,12 +107,14 @@ class WorkspacePage(QWidget):
 
         splitter.setChildrenCollapsible(False)
 
-        main_layout.addWidget(back_button)
+        main_layout.addLayout(toolbar)
         main_layout.addWidget(splitter)
-
-    
 
         self.setLayout(main_layout)
 
     def visualize_array(self, array):
         self.visualization_panel.visualize_array(array)
+
+    def set_library(self, path):
+            self.library_label.setText(os.path.basename(path))
+            self.library_label.setToolTip(path)
