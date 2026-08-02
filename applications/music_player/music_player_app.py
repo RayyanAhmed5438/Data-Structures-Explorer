@@ -1,6 +1,8 @@
 from applications.music_player.library_manager import LibraryManager
 from core.application import Application
 from structures.array_ds import ArrayDS
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtCore import QUrl
 
 class MusicPlayerApplication(Application):
 
@@ -13,9 +15,11 @@ class MusicPlayerApplication(Application):
         self.library_manager = LibraryManager()
         self.current_structure = None
 
+        self.player = QMediaPlayer()
+        self.player.setVolume(100)
+
         self.current_index = -1
-        self.current_song = None
-        self.is_playing = False
+        
 
     def load_library(self, folder):
         self.library_manager.load_library(folder)
@@ -34,13 +38,47 @@ class MusicPlayerApplication(Application):
         return self.library_manager.get_songs()
 
     def play_song(self, index):
-        pass
+            if not(0 <= index < len(self.get_songs())):
+                return None
+            
+            self.current_index = index
+            previous = index > 0
+            next = index < len(self.get_songs()) - 1
+    
+            song = self.get_songs()[index]
 
+            url = QUrl.fromLocalFile(song.path)
+
+            media = QMediaContent(url)
+
+            self.player.setMedia(media)
+
+            self.player.play()
+    
+            return song, previous, next
+    
     def next(self):
-        pass
+
+        if self.current_index == -1:
+            return None
+    
+        return self.play_song(self.current_index + 1)
+    
 
     def previous(self):
-        pass
 
-    def stop(self):
-        pass
+        if self.current_index == -1:
+            return None
+
+        return self.play_song(self.current_index - 1)
+
+    def toggle_playback(self):
+
+        if self.is_playing():
+            self.player.pause()
+
+        elif self.current_index != -1:
+            self.player.play()
+
+    def is_playing(self):
+        return self.player.state() == QMediaPlayer.PlayingState

@@ -1,4 +1,4 @@
-from library.scanner import Scanner
+from applications.music_player.scanner import Scanner
 
 class LibraryManager:
 

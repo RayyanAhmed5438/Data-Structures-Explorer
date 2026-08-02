@@ -76,13 +76,14 @@ class MusicPlayerPanel(QWidget):
             border:none;
             outline:none;
 
-            font-size:13px;
+            font-size:17px;
         }
 
         QListWidget::item{
 
             padding:10px 8px;
             border-radius:6px;
+            
         }
 
         QListWidget::item:hover{
@@ -116,12 +117,15 @@ class MusicPlayerPanel(QWidget):
         controls = QHBoxLayout()
 
         self.previous_button = QPushButton("⏮")
-        self.stop_button = QPushButton("⏹")
+        self.toggle_button = QPushButton("⏹")
         self.next_button = QPushButton("⏭")
+        
+        self.set_navigation(False, False)
+        self.next_button.setEnabled(False)
 
         controls.addStretch()
         controls.addWidget(self.previous_button)
-        controls.addWidget(self.stop_button)
+        controls.addWidget(self.toggle_button)
         controls.addWidget(self.next_button)
         controls.addStretch()
 
@@ -140,7 +144,7 @@ class MusicPlayerPanel(QWidget):
 
         self.song_list = QListWidget()
 
-        layout.addWidget(self.song_list)
+        layout.addWidget(self.song_list, 1)
 
         layout.addStretch()
 
@@ -148,7 +152,7 @@ class MusicPlayerPanel(QWidget):
             self.previousRequested.emit
         )
 
-        self.stop_button.clicked.connect(
+        self.toggle_button.clicked.connect(
             self.stopRequested.emit
         )
 
@@ -173,3 +177,18 @@ class MusicPlayerPanel(QWidget):
     def set_navigation(self, previous_enabled, next_enabled):
         self.previous_button.setEnabled(previous_enabled)
         self.next_button.setEnabled(next_enabled)
+
+    def set_current_song(self, index):  # for highlight (UI)
+
+        self.song_list.blockSignals(True)
+
+        self.song_list.setCurrentRow(index)
+
+        self.song_list.blockSignals(False)
+
+    def set_playing(self, playing):  # for button (UI)
+
+        if playing:
+            self.toggle_button.setText("⏸")
+        else:
+            self.toggle_button.setText("▶")

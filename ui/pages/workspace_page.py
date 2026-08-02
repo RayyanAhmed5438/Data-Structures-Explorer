@@ -154,3 +154,10 @@ class WorkspacePage(QWidget):
 
     def set_navigation(self, previous, next):
         self.sidebar.set_navigation(previous, next)
+
+    def set_current_song(self, index):  # for highlight (UI)
+        self.sidebar.set_current_song(index)
+
+    def set_playing(self, playing):  # for button (UI)
+
+        self.sidebar.set_playing(playing)

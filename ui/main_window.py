@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
 
         self.workspace_page.nextRequested.connect(self.next_song)
         self.workspace_page.previousRequested.connect(self.previous_song)
-        self.workspace_page.stopRequested.connect(self.stop_song)
+        self.workspace_page.stopRequested.connect(self.toggle_song_playback)
         self.workspace_page.songSelected.connect(self.play_song)
 
     def open_application(self, application):
@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
 
 
         folder = QFileDialog.getExistingDirectory(
-            self, "Select your music folder"
+            self, "Select your folder"
         )
 
         if folder and self.current_application:
@@ -159,16 +159,47 @@ class MainWindow(QMainWindow):
 
     def next_song(self):
         if self.current_application:
-            self.current_application.next()
+
+            self.update_playback_ui(
+                self.current_application.next()
+            )
 
     def previous_song(self):
         if self.current_application:
-            self.current_application.previous()
 
-    def stop_song(self):
+
+            self.update_playback_ui(
+                self.current_application.previous()
+            )
+
+    def toggle_song_playback(self):
         if self.current_application:
-            self.current_application.stop()
+            self.current_application.toggle_playback()
+            self.workspace_page.set_playing(
+                self.current_application.is_playing()
+            )
 
     def play_song(self, index):
         if self.current_application:
-            self.current_application.play_song(index)
+
+            self.update_playback_ui(
+                self.current_application.play_song(index)
+            )
+
+
+    def update_playback_ui(self, result):
+        if not result:
+            return
+
+        song, previous_enabled, next_enabled = result
+
+        self.workspace_page.set_song(song.title)
+        self.workspace_page.set_navigation(previous_enabled, next_enabled)
+
+        self.workspace_page.set_current_song(
+            self.current_application.current_index  # for highlight (UI)
+        )
+
+        self.workspace_page.set_playing(
+            self.current_application.is_playing()
+        )
