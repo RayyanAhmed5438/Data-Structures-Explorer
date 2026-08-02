@@ -22,6 +22,8 @@ class WorkspacePage(QWidget):
     stopRequested = pyqtSignal()
     songSelected = pyqtSignal(int)
 
+    deleteRequested = pyqtSignal(int)
+
     def __init__(self):
         super().__init__()
 
@@ -117,6 +119,10 @@ class WorkspacePage(QWidget):
 
         self.sidebar.songSelected.connect(
             self.songSelected.emit
+        )
+
+        self.sidebar.deleteRequested.connect(
+            self.deleteRequested.emit
         )
 
         #=======================================

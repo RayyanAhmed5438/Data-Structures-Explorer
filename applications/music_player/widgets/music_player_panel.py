@@ -6,9 +6,11 @@ from PyQt5.QtWidgets import (
     QListWidgetItem,
     QVBoxLayout,
     QHBoxLayout,
-    QFrame
+    QFrame,
+    QMenu
 )
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
+from applications.music_player.widgets.song_list_widget import SongListWidget
 
 class MusicPlayerPanel(QWidget):
 
@@ -16,6 +18,8 @@ class MusicPlayerPanel(QWidget):
     nextRequested = pyqtSignal()
     stopRequested = pyqtSignal()
     songSelected = pyqtSignal(int)
+
+    deleteRequested = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -109,10 +113,11 @@ class MusicPlayerPanel(QWidget):
 
         card_layout = QVBoxLayout(card)
 
-        now = QLabel("Now Playing")
+        now = QLabel("Now Playing:-")
 
         self.song_title = QLabel("No Song Playing")
         self.song_title.setObjectName("songTitle")
+        self.song_title.setAlignment(Qt.AlignCenter)
 
         controls = QHBoxLayout()
 
@@ -142,7 +147,13 @@ class MusicPlayerPanel(QWidget):
 
         layout.addWidget(library)
 
-        self.song_list = QListWidget()
+        self.song_list = SongListWidget()
+
+        self.song_list.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        self.song_list.customContextMenuRequested.connect(
+            self.show_context_menu
+        )
 
         layout.addWidget(self.song_list, 1)
 
@@ -163,6 +174,26 @@ class MusicPlayerPanel(QWidget):
         self.song_list.currentRowChanged.connect(
             lambda row: self.songSelected.emit(row)
         )
+
+    def show_context_menu(self, pos):
+
+        item = self.song_list.itemAt(pos)
+
+        if item is None:
+            return
+
+        index = self.song_list.row(item)
+
+        menu = QMenu(self)
+
+        delete_action = menu.addAction("Delete")
+
+        action = menu.exec_(
+            self.song_list.mapToGlobal(pos)
+        )
+
+        if action == delete_action:
+            self.deleteRequested.emit(index)
 
     def set_song(self, title):
         self.song_title.setText(title)

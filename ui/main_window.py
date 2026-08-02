@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow,
+    QMessageBox,
     QStackedWidget,
     QFileDialog
 )
@@ -85,6 +86,7 @@ class MainWindow(QMainWindow):
         self.workspace_page.previousRequested.connect(self.previous_song)
         self.workspace_page.stopRequested.connect(self.toggle_song_playback)
         self.workspace_page.songSelected.connect(self.play_song)
+        self.workspace_page.deleteRequested.connect(self.delete_song)
 
     def open_application(self, application):
         self.current_application = application
@@ -218,3 +220,23 @@ class MainWindow(QMainWindow):
                 index,
                 text
             )
+
+    def delete_song(self, index):
+
+        if not self.current_application:
+            return
+
+        song = self.current_application.get_songs()[index]
+
+        reply = QMessageBox.question(
+            self,
+            "Delete Song",
+            f"Delete '{song.title}' from the library?\n\nThis will permanently delete the file.",
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+
+            self.current_application.delete_song(index)
+
+            self.refresh_workspace()

@@ -1,3 +1,5 @@
+import os
+
 from applications.music_player.scanner import Scanner
 
 class LibraryManager:
@@ -20,3 +22,9 @@ class LibraryManager:
     def clear(self):
         self.library_path = None
         self.songs = []
+
+    def delete_song(self, song):
+
+        os.remove(song.path)
+
+        self.songs.remove(song)

@@ -106,3 +106,11 @@ class MusicPlayerApplication(Application):
                 "    Currently playing⬆️"
             )
         )
+
+    def delete_song(self, index):
+
+        song = self.get_songs()[index]
+
+        self.library_manager.delete_song(song)
+
+        self.refresh_structure()
