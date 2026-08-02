@@ -1,3 +1,4 @@
+from applications.music_player.add_song_result import AddSongResult
 from applications.music_player.library_manager import LibraryManager
 from core.application import Application
 from structures.array_ds import ArrayDS
@@ -114,3 +115,12 @@ class MusicPlayerApplication(Application):
         self.library_manager.delete_song(song)
 
         self.refresh_structure()
+
+    def add_song(self, file_path):
+
+        result = self.library_manager.add_song(file_path)
+
+        if result == AddSongResult.SUCCESS:
+            self.refresh_structure
+
+        return result

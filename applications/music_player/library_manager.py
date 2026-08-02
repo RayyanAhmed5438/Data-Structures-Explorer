@@ -1,5 +1,7 @@
 import os
+import shutil
 
+from applications.music_player.add_song_result import AddSongResult
 from applications.music_player.scanner import Scanner
 
 class LibraryManager:
@@ -28,3 +30,26 @@ class LibraryManager:
         os.remove(song.path)
 
         self.songs.remove(song)
+
+    def add_song(self, source_path):
+
+        destination = os.path.join(
+            self.library_path,
+            os.path.basename(source_path)
+        )
+
+        if os.path.samefile(source_path, destination):
+            return AddSongResult.ALREADY_IN_LIBRARY
+
+        if os.path.exists(destination):
+            return AddSongResult.DUPLICATE_NAME
+
+        shutil.copy2(
+            source_path, destination
+        )
+
+        song = self.scanner.create_song(destination)
+
+        self.songs.append(song)
+
+        return AddSongResult.SUCCESS

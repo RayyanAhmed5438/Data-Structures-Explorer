@@ -11,6 +11,20 @@ class Scanner:
     UNKNOWN_ARTIST = "Unknown"
     UNKNOWN_ALBUM = "Unknown"
 
+    def create_song(self, file_path):
+
+        title = os.path.splitext(
+            os.path.basename(file_path)
+        )[0]
+
+        return Song(
+            title=title,
+            artist=self.UNKNOWN_ARTIST,
+            album=self.UNKNOWN_ALBUM,
+            duration=None,
+            path=file_path
+        )
+
     def scan(self, folder_path):
 
         songs = []
@@ -23,16 +37,6 @@ class Scanner:
 
                     file_path = os.path.join(root, file)
 
-                    title = os.path.splitext(file)[0]
-
-                    song = Song(
-                        title = title,
-                        artist=self.UNKNOWN_ARTIST,
-                        album = self.UNKNOWN_ALBUM,
-                        duration= None,
-                        path = file_path
-                    )
-
-                    songs.append(song)
+                    songs.append(self.create_song(file_path))
 
         return songs

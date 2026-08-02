@@ -23,6 +23,7 @@ class WorkspacePage(QWidget):
     songSelected = pyqtSignal(int)
 
     deleteRequested = pyqtSignal(int)
+    addSongRequested = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -80,6 +81,8 @@ class WorkspacePage(QWidget):
 
         self.choose_button = QPushButton("Choose Library")
 
+        self.add_song_button = QPushButton("Add a Song")
+
         toolbar = QHBoxLayout()
         toolbar.setContentsMargins(10, 10, 10, 10)
         toolbar.setSpacing(8)
@@ -93,6 +96,9 @@ class WorkspacePage(QWidget):
         toolbar.addSpacing(20)
 
         toolbar.addWidget(self.choose_button)
+        toolbar.addSpacing(15)
+
+        toolbar.addWidget(self.add_song_button)
 
         toolbar.addStretch()
 
@@ -131,6 +137,10 @@ class WorkspacePage(QWidget):
 
         self.choose_button.clicked.connect(
              self.chooseLibraryRequested.emit
+        )
+
+        self.add_song_button.clicked.connect(
+            self.addSongRequested.emit
         )
         
         splitter.addWidget(self.sidebar)

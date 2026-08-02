@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QFileDialog
 )
+from applications.music_player.add_song_result import AddSongResult
 from config.settings import SettingsManager
 from ui.pages.home_page import HomePage
 from ui.pages.workspace_page import WorkspacePage
@@ -87,6 +88,7 @@ class MainWindow(QMainWindow):
         self.workspace_page.stopRequested.connect(self.toggle_song_playback)
         self.workspace_page.songSelected.connect(self.play_song)
         self.workspace_page.deleteRequested.connect(self.delete_song)
+        self.workspace_page.addSongRequested.connect(self.add_song)
 
     def open_application(self, application):
         self.current_application = application
@@ -240,3 +242,38 @@ class MainWindow(QMainWindow):
             self.current_application.delete_song(index)
 
             self.refresh_workspace()
+
+    def add_song(self):
+
+        if not self.current_application:
+            return
+
+        file, _ = QFileDialog.getOpenFileName(
+            self, "Select Song",
+            "",
+            "Audio Files (*.mp3 *.wav *.ogg *.flac *.m4a)"
+        )
+
+        if not file:
+            return
+
+        result = self.current_application.add_song(file)
+
+        if result == AddSongResult.SUCCESS:
+            self.refresh_workspace()
+
+        elif result == AddSongResult.ALREADY_IN_LIBRARY:
+
+            QMessageBox.information(
+                self,
+                "Song Exists",
+                "This song is already in the selected library."
+            )
+
+        elif result == AddSongResult.DUPLICATE_NAME:
+
+            QMessageBox.warning(
+                self,
+                "Duplicate Song",
+                "A file with this name already exists in the library."
+            )
