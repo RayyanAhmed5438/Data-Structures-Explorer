@@ -13,6 +13,10 @@ class MusicPlayerApplication(Application):
         self.library_manager = LibraryManager()
         self.current_structure = None
 
+        self.current_index = -1
+        self.current_song = None
+        self.is_playing = False
+
     def load_library(self, folder):
         self.library_manager.load_library(folder)
         self.refresh_structure()
@@ -28,3 +32,15 @@ class MusicPlayerApplication(Application):
 
     def get_songs(self):
         return self.library_manager.get_songs()
+
+    def play_song(self, index):
+        pass
+
+    def next(self):
+        pass
+
+    def previous(self):
+        pass
+
+    def stop(self):
+        pass

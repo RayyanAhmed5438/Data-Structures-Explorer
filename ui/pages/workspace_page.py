@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QHBoxLayout
 )
-from ui.widgets.control_panel import ControlPanel
+from applications.music_player.widgets.music_player_panel import MusicPlayerPanel
 from ui.widgets.visualization_panel import VisualizationPanel
 import os
 
@@ -16,6 +16,11 @@ class WorkspacePage(QWidget):
 
     backRequested = pyqtSignal()
     chooseLibraryRequested = pyqtSignal()
+
+    previousRequested = pyqtSignal()
+    nextRequested = pyqtSignal()
+    stopRequested = pyqtSignal()
+    songSelected = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -93,14 +98,36 @@ class WorkspacePage(QWidget):
 
         splitter = QSplitter()
 
-        self.control_panel = ControlPanel()
+
+        #=======================================
+
+        self.sidebar = MusicPlayerPanel()
+
+        self.sidebar.previousRequested.connect(
+            self.previousRequested.emit
+        )
+
+        self.sidebar.nextRequested.connect(
+            self.nextRequested.emit
+        )
+
+        self.sidebar.stopRequested.connect(
+            self.stopRequested.emit
+        )
+
+        self.sidebar.songSelected.connect(
+            self.songSelected.emit
+        )
+
+        #=======================================
+        
         self.visualization_panel = VisualizationPanel()
 
         self.choose_button.clicked.connect(
              self.chooseLibraryRequested.emit
         )
         
-        splitter.addWidget(self.control_panel)
+        splitter.addWidget(self.sidebar)
         splitter.addWidget(self.visualization_panel)
 
         splitter.setSizes([500, 500])
@@ -118,3 +145,12 @@ class WorkspacePage(QWidget):
     def set_library(self, path):
             self.library_label.setText(os.path.basename(path))
             self.library_label.setToolTip(path)
+
+    def set_song(self, title):
+        self.sidebar.set_song(title)
+
+    def load_songs(self, songs):
+        self.sidebar.load_songs(songs)
+
+    def set_navigation(self, previous, next):
+        self.sidebar.set_navigation(previous, next)

@@ -81,6 +81,11 @@ class MainWindow(QMainWindow):
             self.choose_library
         )
 
+        self.workspace_page.nextRequested.connect(self.next_song)
+        self.workspace_page.previousRequested.connect(self.previous_song)
+        self.workspace_page.stopRequested.connect(self.stop_song)
+        self.workspace_page.songSelected.connect(self.play_song)
+
     def open_application(self, application):
         self.current_application = application
 
@@ -117,6 +122,10 @@ class MainWindow(QMainWindow):
         self.workspace_page.visualize_array(
             self.current_application.get_structure()
         )
+
+        self.workspace_page.load_songs(
+            self.current_application.get_songs()
+        )
             
     def create_menu(self):
         menu = self.menuBar()
@@ -148,3 +157,18 @@ class MainWindow(QMainWindow):
     def show_workspace(self):
         self.stack.setCurrentWidget(self.workspace_page)
 
+    def next_song(self):
+        if self.current_application:
+            self.current_application.next()
+
+    def previous_song(self):
+        if self.current_application:
+            self.current_application.previous()
+
+    def stop_song(self):
+        if self.current_application:
+            self.current_application.stop()
+
+    def play_song(self, index):
+        if self.current_application:
+            self.current_application.play_song(index)
