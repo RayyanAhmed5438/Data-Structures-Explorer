@@ -18,12 +18,15 @@ class GraphicsScene(QGraphicsScene):
 
         self.items_map = {}
 
-    def draw_box(self, x, y, width, height):
+    def draw_box(self, x, y, width, height,
+                  fill_color = QColor(55, 55, 55), 
+                  border_color = QColor(180, 180, 180)
+    ):
 
         rect = self.addRect(
             x, y, width, height,
-            QPen(QColor(180, 180, 180), 2),
-            QBrush(QColor(55, 55, 55))
+            QPen(border_color, 2),
+            QBrush(fill_color)
         )
 
         return rect
@@ -35,7 +38,6 @@ class GraphicsScene(QGraphicsScene):
         text_item.setDefaultTextColor(Qt.white)
 
         font = QFont("Segoe UI", 11)
-        font.setBold(True)
 
         text_item.setFont(font)
 

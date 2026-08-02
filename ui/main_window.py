@@ -203,3 +203,18 @@ class MainWindow(QMainWindow):
         self.workspace_page.set_playing(
             self.current_application.is_playing()
         )
+
+        state = self.current_application.get_visualization_state()
+
+        if state.selected_index is not None:
+            self.workspace_page.set_selected_index(
+                state.selected_index
+            )
+
+        if state.marker is not None:
+            index, text = state.marker
+
+            self.workspace_page.set_marker(
+                index,
+                text
+            )

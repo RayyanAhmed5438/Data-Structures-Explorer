@@ -39,3 +39,9 @@ class VisualizationPanel(QWidget):
 
     def visualize_array(self, array):
         self.array_visualizer.visualize(array)
+
+    def set_selected_index(self, index):
+        self.array_visualizer.set_selected_index(index)
+
+    def set_marker(self, index, text):
+        self.array_visualizer.set_marker(index, text)

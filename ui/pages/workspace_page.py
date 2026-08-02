@@ -161,3 +161,10 @@ class WorkspacePage(QWidget):
     def set_playing(self, playing):  # for button (UI)
 
         self.sidebar.set_playing(playing)
+
+
+    def set_selected_index(self, index):  # for visualization
+        self.visualization_panel.set_selected_index(index)
+
+    def set_marker(self, index, text):
+        self.visualization_panel.set_marker(index, text)

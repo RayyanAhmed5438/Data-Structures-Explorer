@@ -3,6 +3,7 @@ from core.application import Application
 from structures.array_ds import ArrayDS
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QUrl
+from core.visualization_state import VisualizationState
 
 class MusicPlayerApplication(Application):
 
@@ -82,3 +83,26 @@ class MusicPlayerApplication(Application):
 
     def is_playing(self):
         return self.player.state() == QMediaPlayer.PlayingState
+
+    def get_marker(self):
+
+        if self.current_index == -1:
+            return None
+
+        return (
+            self.current_index,
+            "Currently Playing"
+        )
+
+    def get_visualization_state(self):
+
+        if self.current_index == -1:
+            return VisualizationState()
+
+        return VisualizationState(
+            selected_index=self.current_index,
+            marker=(
+                self.current_index,
+                "    Currently playing⬆️"
+            )
+        )
