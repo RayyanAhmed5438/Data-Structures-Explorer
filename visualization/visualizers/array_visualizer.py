@@ -46,7 +46,7 @@ class ArrayVisualizer:
 
 
             text = self.scene.draw_text(
-                song.title,0, 0
+                song.title,0, 0, BOX_WIDTH - 20
             )
             rect = text.boundingRect()
 
@@ -54,6 +54,7 @@ class ArrayVisualizer:
             text_y = y + (BOX_HEIGHT - rect.height()) / 2
 
             text.setPos(text_x, text_y)
+            text.setToolTip(song.title)
 
 
             if index == self.selected_index:

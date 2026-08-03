@@ -31,6 +31,7 @@ class Scanner:
 
         for root, _, files in os.walk(folder_path):
 
+
             for file in files:
 
                 if file.lower().endswith(self.SUPPORTED_EXTENSIONS):

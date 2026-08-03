@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QGraphicsLineItem
 )
 
-from PyQt5.QtGui import QColor, QBrush, QPen, QFont
+from PyQt5.QtGui import QColor, QBrush, QFontMetrics, QPen, QFont
 from PyQt5.QtCore import Qt
 
 
@@ -31,16 +31,22 @@ class GraphicsScene(QGraphicsScene):
 
         return rect
 
-    def draw_text(self, text, x, y):
+    def draw_text(self, text, x, y, max_width=None):
+        font = QFont("Segoe UI", 11)
+        font.setBold(True)
+
+        if max_width is not None:
+            metrics = QFontMetrics(font)
+            text = metrics.elidedText(
+                text,
+                Qt.ElideRight,
+                max_width
+            )
 
         text_item = self.addText(text)
 
         text_item.setDefaultTextColor(Qt.white)
-
-        font = QFont("Segoe UI", 11)
-
         text_item.setFont(font)
-
         text_item.setPos(x, y)
 
         return text_item

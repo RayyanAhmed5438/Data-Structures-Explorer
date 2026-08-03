@@ -2,6 +2,7 @@ import os
 import shutil
 
 from applications.music_player.add_song_result import AddSongResult
+from applications.music_player.playlist_manager import PlaylistManager
 from applications.music_player.scanner import Scanner
 
 class LibraryManager:
@@ -10,10 +11,54 @@ class LibraryManager:
         self.library_path = None
         self.songs = []
         self.scanner = Scanner()
+        self.playlist_manager = PlaylistManager()
 
     def load_library(self, folder_path):
         self.library_path = folder_path
+        self.playlist_manager.set_library(folder_path)
         self.songs = self.scanner.scan(folder_path)
+
+        order = self.playlist_manager.load()
+
+        if order == []:
+            order = [
+                {"file":os.path.basename(song.path)}
+                for song in self.songs
+            ]
+
+            self.playlist_manager.save(order)
+
+        song_map = {
+            os.path.basename(song.path) : song for song in self.songs
+        }
+
+        ordered = []
+
+        for item in order:
+            filename = item["file"]
+
+            if filename in song_map:
+                ordered.append(song_map.pop(filename))
+
+        ordered.extend(song_map.values())
+
+        order = [
+            {"file": os.path.basename(song.path)}
+            for song in ordered
+        ]
+
+        self.playlist_manager.save(order)
+
+        self.songs = ordered
+
+    def save_playlist(self):
+
+        order = [
+            {"file": os.path.basename(song.path)}
+            for song in self.songs
+        ]
+
+        self.playlist_manager.save(order)
 
     def get_songs(self):
         return self.songs
@@ -31,6 +76,8 @@ class LibraryManager:
 
         self.songs.remove(song)
 
+        self.save_playlist()
+
     def add_song(self, source_path):
 
         destination = os.path.join(
@@ -38,7 +85,7 @@ class LibraryManager:
             os.path.basename(source_path)
         )
 
-        if os.path.samefile(source_path, destination):
+        if os.path.abspath(source_path) == os.path.abspath(destination):
             return AddSongResult.ALREADY_IN_LIBRARY
 
         if os.path.exists(destination):
@@ -52,4 +99,28 @@ class LibraryManager:
 
         self.songs.append(song)
 
+        self.save_playlist()
+
         return AddSongResult.SUCCESS
+
+    def move_up(self, index):
+
+        if index == 0:
+            return
+
+        self.songs[index], self.songs[index-1] = (
+            self.songs[index-1], self.songs[index]
+        )
+
+        self.save_playlist()
+
+    def move_down(self, index):
+
+        if index >= len(self.songs) -1:
+            return
+
+        self.songs[index], self.songs[index+1] = (
+            self.songs[index+1], self.songs[index]
+        )
+
+        self.save_playlist()

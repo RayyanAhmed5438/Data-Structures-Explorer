@@ -89,11 +89,16 @@ class MainWindow(QMainWindow):
         self.workspace_page.songSelected.connect(self.play_song)
         self.workspace_page.deleteRequested.connect(self.delete_song)
         self.workspace_page.addSongRequested.connect(self.add_song)
+        self.workspace_page.moveDownRequested.connect(self.move_down)
+        self.workspace_page.moveUpRequested.connect(self.move_up)
+
 
     def open_application(self, application):
         self.current_application = application
 
         self.workspace_page.set_application(application)
+
+        self.current_application.on_error = self.show_playback_error
 
         library_path = self.settings.get("library_path")
 
@@ -119,16 +124,35 @@ class MainWindow(QMainWindow):
             self.refresh_workspace()
 
     def refresh_workspace(self):
+
+        self.current_application.refresh_structure()
+
         self.workspace_page.set_library(
             self.settings.get("library_path")
         )
+
 
         self.workspace_page.visualize_array(
             self.current_application.get_structure()
         )
 
+
         self.workspace_page.load_songs(
             self.current_application.get_songs()
+        )
+
+        state = self.current_application.get_visualization_state()
+
+        if state.selected_index is not None:
+            self.workspace_page.set_current_song(state.selected_index)
+            self.workspace_page.set_selected_index(state.selected_index)
+
+        if state.marker is not None:
+            index, text = state.marker
+            self.workspace_page.set_marker(index, text)
+
+        self.workspace_page.set_playing(
+            self.current_application.is_playing()
         )
             
     def create_menu(self):
@@ -183,12 +207,32 @@ class MainWindow(QMainWindow):
                 self.current_application.is_playing()
             )
 
-    def play_song(self, index):
-        if self.current_application:
+    def show_playback_error(self, error):
 
-            self.update_playback_ui(
-                self.current_application.play_song(index)
+            print(repr(error))
+
+            if not error:
+                error = (
+                    f"Unable to play this audio file.\n\n"
+                    "The file may ise an unsupported codec or may be corrupted."
+                )
+        
+            QMessageBox.warning(
+                self, 
+                "Playback Error",
+                error
             )
+            
+
+    def play_song(self, index):
+        if not self.current_application:
+            return
+
+        result = self.current_application.play_song(index)
+
+        self.update_playback_ui(
+            result
+        )
 
 
     def update_playback_ui(self, result):
@@ -277,3 +321,18 @@ class MainWindow(QMainWindow):
                 "Duplicate Song",
                 "A file with this name already exists in the library."
             )
+
+    def move_up(self, index):
+
+        if self.current_application:
+
+            self.current_application.move_up(index)
+
+            self.refresh_workspace()
+
+    def move_down(self, index):
+
+        if self.current_application:
+            self.current_application.move_down(index)
+
+            self.refresh_workspace()

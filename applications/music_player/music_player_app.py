@@ -8,6 +8,7 @@ from core.visualization_state import VisualizationState
 
 class MusicPlayerApplication(Application):
 
+
     def __init__(self):
         super().__init__(
             "music_player",
@@ -21,6 +22,11 @@ class MusicPlayerApplication(Application):
         self.player.setVolume(100)
 
         self.current_index = -1
+        self.current_song = None
+
+        self.on_error = None
+
+        self.player.error.connect(self.on_player_error)
         
 
     def load_library(self, folder):
@@ -40,6 +46,7 @@ class MusicPlayerApplication(Application):
         return self.library_manager.get_songs()
 
     def play_song(self, index):
+
             if not(0 <= index < len(self.get_songs())):
                 return None
             
@@ -49,15 +56,44 @@ class MusicPlayerApplication(Application):
     
             song = self.get_songs()[index]
 
+            if song == self.current_song:
+                if not self.is_playing():
+                    self.player.play()
+                return song, previous, next
+
+            
+            self.current_song = song
+
             url = QUrl.fromLocalFile(song.path)
 
             media = QMediaContent(url)
+
 
             self.player.setMedia(media)
 
             self.player.play()
     
             return song, previous, next
+
+    def on_player_error(self):
+        self.current_index = -1
+        self.current_song = None
+
+        if self.on_error:
+            self.on_error(self.player.errorString())
+
+    def update_current_index(self):
+
+        if self.current_song is None:
+            return
+
+        try:
+            self.current_index = self.get_songs().index(
+                self.current_song
+            )
+        except ValueError:
+            self.current_song = None
+            self.current_index = -1
     
     def next(self):
 
@@ -104,7 +140,7 @@ class MusicPlayerApplication(Application):
             selected_index=self.current_index,
             marker=(
                 self.current_index,
-                "    Currently playing⬆️"
+                "               Currently playing⬆️"
             )
         )
 
@@ -114,13 +150,30 @@ class MusicPlayerApplication(Application):
 
         self.library_manager.delete_song(song)
 
-        self.refresh_structure()
+        self.update_current_index()
+
+        
 
     def add_song(self, file_path):
 
         result = self.library_manager.add_song(file_path)
 
         if result == AddSongResult.SUCCESS:
-            self.refresh_structure
+            
+            self.update_current_index()
 
         return result
+
+    def move_up(self, index):
+
+        self.library_manager.move_up(index)
+        self.update_current_index()
+
+        
+
+    def move_down(self, index):
+
+        self.library_manager.move_down(index)
+        self.update_current_index()
+
+        

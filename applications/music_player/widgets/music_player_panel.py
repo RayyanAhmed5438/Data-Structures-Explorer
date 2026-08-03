@@ -21,6 +21,9 @@ class MusicPlayerPanel(QWidget):
 
     deleteRequested = pyqtSignal(int)
 
+    moveUpRequested = pyqtSignal(int)
+    moveDownRequested = pyqtSignal(int)
+
     def __init__(self):
         super().__init__()
 
@@ -171,9 +174,13 @@ class MusicPlayerPanel(QWidget):
             self.nextRequested.emit
         )
 
-        self.song_list.currentRowChanged.connect(
-            lambda row: self.songSelected.emit(row)
+        self.song_list.itemClicked.connect(
+            self.item_clicked
         )
+
+    def item_clicked(self, item):
+        index = self.song_list.row(item)
+        self.songSelected.emit(index)
 
     def show_context_menu(self, pos):
 
@@ -186,13 +193,26 @@ class MusicPlayerPanel(QWidget):
 
         menu = QMenu(self)
 
+        move_up = menu.addAction("Move Up")
+        move_down = menu.addAction("Move Down")
+        menu.addSeparator()
         delete_action = menu.addAction("Delete")
+
+        move_up.setEnabled(index > 0)
+
+        move_down.setEnabled(index < self.song_list.count() - 1) 
 
         action = menu.exec_(
             self.song_list.mapToGlobal(pos)
         )
 
-        if action == delete_action:
+        if action == move_up:
+            self.moveUpRequested.emit(index)
+
+        elif action == move_down:
+            self.moveDownRequested.emit(index)
+
+        elif action == delete_action:
             self.deleteRequested.emit(index)
 
     def set_song(self, title):
@@ -200,10 +220,16 @@ class MusicPlayerPanel(QWidget):
 
     def load_songs(self, songs):
 
+        self.song_list.blockSignals(True)
+
         self.song_list.clear()
 
         for song in songs:
             QListWidgetItem(song.title, self.song_list)
+
+        self.song_list.setCurrentRow(-1)
+
+        self.song_list.blockSignals(False)
 
     def set_navigation(self, previous_enabled, next_enabled):
         self.previous_button.setEnabled(previous_enabled)
