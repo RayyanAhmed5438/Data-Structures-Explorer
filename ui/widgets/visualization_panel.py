@@ -48,7 +48,27 @@ class VisualizationPanel(QWidget):
 
     def center_on_index(self, index):
 
-        x = self.array_visualizer.START_X + index * (self.array_visualizer.BOX_WIDTH + self.array_visualizer.SPACING)
+        x = self.array_visualizer.START_X + index * (
+            self.array_visualizer.BOX_WIDTH + 
+            self.array_visualizer.SPACING
+            )
+
+        self.view.centerOn(
+            x + self.array_visualizer.BOX_WIDTH / 2,
+            self.array_visualizer.START_Y
+        )
+
+    def center_on_swap(self, first, second):
+
+        middle = (first + second) / 2
+
+        x = (
+            self.array_visualizer.START_X +
+            middle * (
+                self.array_visualizer.BOX_WIDTH +
+                self.array_visualizer.SPACING
+            )
+        )
 
         self.view.centerOn(
             x + self.array_visualizer.BOX_WIDTH / 2,
@@ -62,6 +82,7 @@ class VisualizationPanel(QWidget):
             second,
             finished
         )
+
 
     def is_animating(self):
         return self.array_visualizer.animating

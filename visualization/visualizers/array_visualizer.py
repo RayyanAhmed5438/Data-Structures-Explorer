@@ -275,11 +275,13 @@ class ArrayVisualizer:
                 self.START_Y
             )
     
-    def get_temp_position(self):
+    def get_temp_position(self,index):
+
+        box = self.get_box_position(index)
     
         return QPointF(
-            self.START_X,
-            self.START_Y - 170
+            box.x(),
+            box.y() - 170
         )
 
     def animate_to_temp(self, first, second):
@@ -287,7 +289,7 @@ class ArrayVisualizer:
         node = self.items[first]
 
 
-        self.show_temp("")
+        self.show_temp("", first)
 
         floating = self.create_floating_text(
             node.text
@@ -295,7 +297,7 @@ class ArrayVisualizer:
 
         node.hide_text()
 
-        temp = self.get_temp_position()
+        temp = self.get_temp_position(first)
 
         rect = floating.boundingRect()
 
@@ -320,7 +322,7 @@ class ArrayVisualizer:
         self.scene.removeItem(floating)
 
         self.show_temp(
-            node.song.title
+            node.song.title, first
         )
 
         self.animate_b_to_a(
@@ -348,11 +350,18 @@ class ArrayVisualizer:
 
         self.hide_temp()
 
-    def show_temp(self, song_name):
+    def show_temp(self, song_name, index):
 
         self.temp_text.setPlainText(song_name)
 
-        temp = self.get_temp_position()
+        temp = self.get_temp_position(index)
+
+        self.temp_box.setPos(temp)
+
+        self.temp_label.setPos(
+            temp.x() + 45,
+            temp.y() - 35
+        )
 
         self.center_text(
             self.temp_text,

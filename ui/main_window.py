@@ -355,6 +355,10 @@ class MainWindow(QMainWindow):
         if index <= 0:
             return
 
+        self.workspace_page.visualization_panel.center_on_swap(
+            index, index-1
+        )
+
         self.workspace_page.visualization_panel.animate_swap(
             index,
             index-1,
@@ -376,6 +380,11 @@ class MainWindow(QMainWindow):
 
         if index >= len(self.current_application.get_songs()) -1:
             return
+
+        self.workspace_page.visualization_panel.center_on_swap(
+            index,
+            index + 1
+        )
 
         self.workspace_page.visualization_panel.animate_swap(
             index,
