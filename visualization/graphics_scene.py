@@ -14,9 +14,6 @@ class GraphicsScene(QGraphicsScene):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        
-
-        self.items_map = {}
 
     def draw_box(self, x, y, width, height,
                   fill_color = QColor(55, 55, 55), 
@@ -24,7 +21,7 @@ class GraphicsScene(QGraphicsScene):
     ):
 
         rect = self.addRect(
-            x, y, width, height,
+            0, 0, width, height,
             QPen(border_color, 2),
             QBrush(fill_color)
         )
@@ -47,13 +44,14 @@ class GraphicsScene(QGraphicsScene):
 
         text_item.setDefaultTextColor(Qt.white)
         text_item.setFont(font)
+
         text_item.setPos(x, y)
 
         return text_item
 
     def clear_scene(self):
         self.clear()
-        self.items_map.clear()
+        
 
     def draw_line(self, x1, y1, x2, y2):
 
@@ -63,17 +61,6 @@ class GraphicsScene(QGraphicsScene):
 
         return line
 
-    def animate_move(self):
-        pass
-
-    def animate_insert(self):
-        pass
-
-    def animate_delete(self):
-        pass
-
-    def animate_highlight(self):
-        pass
 
     def fit_with_margin(self, margin):
         

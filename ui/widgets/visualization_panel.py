@@ -45,3 +45,12 @@ class VisualizationPanel(QWidget):
 
     def set_marker(self, index, text):
         self.array_visualizer.set_marker(index, text)
+
+    def center_on_index(self, index):
+
+        x = self.array_visualizer.START_X + index * (self.array_visualizer.BOX_WIDTH + self.array_visualizer.SPACING)
+
+        self.view.centerOn(
+            x + self.array_visualizer.BOX_WIDTH / 2,
+            self.array_visualizer.START_Y
+        )
