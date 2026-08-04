@@ -125,6 +125,8 @@ class MainWindow(QMainWindow):
 
     def refresh_workspace(self):
 
+        print("Refreshing workspace")
+
         self.current_application.refresh_structure()
 
         self.workspace_page.set_library(
@@ -186,6 +188,10 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(self.workspace_page)
 
     def next_song(self):
+
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
         if self.current_application:
 
             self.update_playback_ui(
@@ -193,6 +199,10 @@ class MainWindow(QMainWindow):
             )
 
     def previous_song(self):
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
+
         if self.current_application:
 
 
@@ -201,6 +211,9 @@ class MainWindow(QMainWindow):
             )
 
     def toggle_song_playback(self):
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
         if self.current_application:
             self.current_application.toggle_playback()
             self.workspace_page.set_playing(
@@ -227,6 +240,10 @@ class MainWindow(QMainWindow):
             
 
     def play_song(self, index):
+
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
         if not self.current_application:
             return
 
@@ -271,6 +288,9 @@ class MainWindow(QMainWindow):
 
     def delete_song(self, index):
 
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
         if not self.current_application:
             return
 
@@ -290,6 +310,9 @@ class MainWindow(QMainWindow):
             self.refresh_workspace()
 
     def add_song(self):
+
+        if self.workspace_page.visualization_panel.is_animating():
+            return
 
         if not self.current_application:
             return
@@ -326,6 +349,20 @@ class MainWindow(QMainWindow):
 
     def move_up(self, index):
 
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
+        if index <= 0:
+            return
+
+        self.workspace_page.visualization_panel.animate_swap(
+            index,
+            index-1,
+            finished=lambda:self.finish_move_up(index)
+        )
+
+    def finish_move_up(self, index):
+
         if self.current_application:
 
             self.current_application.move_up(index)
@@ -333,6 +370,20 @@ class MainWindow(QMainWindow):
             self.refresh_workspace()
 
     def move_down(self, index):
+
+        if self.workspace_page.visualization_panel.is_animating():
+            return
+
+        if index >= len(self.current_application.get_songs()) -1:
+            return
+
+        self.workspace_page.visualization_panel.animate_swap(
+            index,
+            index+1,
+            finished=lambda:self.finish_move_down(index)
+        )
+
+    def finish_move_down(self, index):
 
         if self.current_application:
             self.current_application.move_down(index)

@@ -54,3 +54,14 @@ class VisualizationPanel(QWidget):
             x + self.array_visualizer.BOX_WIDTH / 2,
             self.array_visualizer.START_Y
         )
+
+    def animate_swap(self, first, second, finished=None):
+
+        self.array_visualizer.animate_swap(
+            first,
+            second,
+            finished
+        )
+
+    def is_animating(self):
+        return self.array_visualizer.animating

@@ -11,9 +11,6 @@ class ArrayVisualizer:
     START_Y = 150
     SPACING = 1
 
-    ANIMATION_DURATION = 1000
-    FRAME_TIME = 16
-
     def __init__(self, scene: GraphicsScene):
         self.scene = scene
 
@@ -35,21 +32,38 @@ class ArrayVisualizer:
             self.update_animation
         )
 
-        self.animation = None
+        self.animations = []
+
+        self.swap_finished = None
+        self.animating = False
 
         
     def visualize(self, array):
 
         self.current_array = array
 
-        if len(self.items) != len(array.get_all()):
-            self.create_items(array)
-            return
+        self.create_items(array)
 
         self.refresh_scene()
 
     def refresh_scene(self):
-        pass
+
+        rebuild = False
+
+        for node, song in zip(
+            self.items,
+            self.current_array.get_all()
+        ):
+            if node.song is not song:
+                rebuild = True
+                break
+
+        if rebuild:
+            self.create_items(self.current_array)
+            return
+
+        for index, node in enumerate(self.items):
+            node.set_selected(index == self.selected_index)
 
     def create_items(self, array):
 
@@ -57,8 +71,11 @@ class ArrayVisualizer:
         self.items.clear()
 
         self.create_temp_box()
+
+        print("Rebuilding:")
             
         for index, song in enumerate(array.get_all()):
+            print(song.title)
 
             node = ArrayNode(
                 song,
@@ -72,94 +89,174 @@ class ArrayVisualizer:
 
             self.scene.addItem(node)
 
-            self.items.append({
-                "song": song,
-                "node": node
-            })
+            self.items.append(node)
 
         self.scene.fit_with_margin(30)
+
     
+    def create_floating_text(self, text_item):
 
-    def animate_item(self, visual_item, end_pos, finished=None):
+        floating = self.scene.draw_text(
+            text_item.toPlainText(),
+            0,
+            0,
+            self.BOX_WIDTH - 20
+        )
 
-        self.animation = {
-            "item": visual_item,
+        floating.setPos(
+            text_item.scenePos()
+        )
 
-            "start": visual_item["node"].pos(),
+        return floating
+
+    def animate_text(self,floating,end_pos,finished=None):
+
+        animation = {
+            "item": floating,
+
+            "start": floating.scenePos(),
 
             "end": end_pos,
 
-            "duration": self.ANIMATION_DURATION,
-
             "elapsed": 0,
+
+            "duration": 600,
 
             "finished": finished
         }
 
-        self.timer.start(self.FRAME_TIME)
+        self.animations.append(animation)
+
+        if not self.timer.isActive():
+            self.timer.start(16)
+
 
     def update_animation(self):
 
-        if self.animation is None:
+        if not self.animations:
+            self.timer.stop()
             return
 
-        self.animation["elapsed"] += self.FRAME_TIME
+        finished = []
 
-        progress = (
-            self.animation["elapsed"] / self.animation["duration"]
-        )
+        for animation in self.animations:
 
-        if progress >= 1:
+            animation["elapsed"] += 16
 
-            progress = 1
+            progress = (
+                animation["elapsed"] /
+                animation["duration"]
+            )
 
-            self.timer.stop()
-            callback = self.animation["finished"]
-            self.animation = None
+            if progress >= 1:
+
+                progress = 1
+
+            start = animation["start"]
+            end = animation["end"]
+
+            x = start.x() + (end.x() - start.x()) * progress
+            y = start.y() + (end.y() - start.y()) * progress
+
+            animation["item"].setPos(x, y)
+
+            if progress == 1:
+                finished.append(animation)
+
+        for animation in finished:
+
+            callback = animation["finished"]
+
+            self.animations.remove(animation)
 
             if callback:
                 callback()
 
-            return
+        if not self.animations:
+            self.timer.stop()
 
-        start = self.animation["start"]
-        end = self.animation["end"]
+    def animate_swap(self, first, second, finished=None):
 
-        x = start.x() + (end.x() - start.x()) * progress
-        y = start.y() + (end.y() - start.y()) * progress
+            if self.animating:
+                return
 
-        self.animation["item"]["node"].setPos(x, y)
+            self.animating = True
 
+            self.swap_finished = finished
 
-    def animate_to_temp(self, index):
+            self.animate_to_temp(
+                first, second
+            )
 
-        item = self.items[index]
+    def animate_b_to_a(self, first, second):
 
-        self.show_temp(
-            ""
+        first_node = self.items[first]
+        second_node = self.items[second]
+
+        floating = self.create_floating_text(
+            second_node.text
         )
 
+        second_node.hide_text()
 
-        # temp = self.get_temp_position()
+        destination = first_node.get_text_scene_position()
 
-        # self.center_text(
-        #     self.temp_text,
-        #     temp.x(),
-        #     temp.y()
-        # )
-
-        print("BOX POS :", item["node"].pos())
-
-        print("TEMP POS :", self.temp_box.pos())
-        print("TEMP RECT:", self.temp_box.rect())
-
-        self.animate_item(
-            item, self.get_temp_position()
+        self.animate_text(
+            floating,
+            destination,
+            finished=lambda:
+                self.finish_b_to_a(
+                    first_node,
+                    second_node,
+                    floating
+                )
         )
 
+    def finish_b_to_a(self, first_node, second_node, floating):
 
-    def animate_swap(self, first, second):
-            pass
+        first_node.set_title(
+            second_node.song.title
+        )
+
+        first_node.show_text()
+
+        self.scene.removeItem(floating)
+
+        floating = self.create_floating_text(
+            self.temp_text
+        )
+
+        self.temp_text.hide()
+
+        destination = second_node.get_text_scene_position()
+
+        self.animate_text(
+            floating,
+            destination,
+            finished=lambda:
+                self.finish_temp_to_b(
+                    second_node,
+                    floating
+                )
+        )
+
+    def finish_temp_to_b(self, second_node, floating):
+
+        second_node.set_title(
+            self.temp_text.toPlainText()
+        )
+        
+        second_node.show_text()
+
+        self.scene.removeItem(floating)
+
+        self.hide_temp()
+
+        self.animating = False
+
+        if self.swap_finished:
+            self.swap_finished()
+            self.swap_finished = None
 
     def center_text(self, text_item, x, y):
 
@@ -185,6 +282,51 @@ class ArrayVisualizer:
             self.START_Y - 170
         )
 
+    def animate_to_temp(self, first, second):
+
+        node = self.items[first]
+
+
+        self.show_temp("")
+
+        floating = self.create_floating_text(
+            node.text
+        )
+
+        node.hide_text()
+
+        temp = self.get_temp_position()
+
+        rect = floating.boundingRect()
+
+        destination = QPointF(
+            temp.x() + (self.BOX_WIDTH - rect.width()) / 2,
+            temp.y() + (self.BOX_HEIGHT - rect.height()) / 2
+        )
+
+        self.animate_text(
+            floating,
+            destination,
+            finished=lambda: self.finish_a_to_temp(
+            node,
+            floating,
+            first,
+            second
+        )
+        )
+
+    def finish_a_to_temp(self, node, floating, first, second):
+
+        self.scene.removeItem(floating)
+
+        self.show_temp(
+            node.song.title
+        )
+
+        self.animate_b_to_a(
+            first,
+            second
+        )
 
     def create_temp_box(self):
 
@@ -243,3 +385,5 @@ class ArrayVisualizer:
     def _redraw(self):
         if self.current_array is not None:
             self.visualize(self.current_array)
+
+    

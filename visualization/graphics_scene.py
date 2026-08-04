@@ -26,6 +26,8 @@ class GraphicsScene(QGraphicsScene):
             QBrush(fill_color)
         )
 
+        rect.setPos(x, y)
+
         return rect
 
     def draw_text(self, text, x, y, max_width=None):

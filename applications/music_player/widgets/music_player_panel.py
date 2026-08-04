@@ -224,7 +224,10 @@ class MusicPlayerPanel(QWidget):
 
         self.song_list.clear()
 
+        print("Loading list:")
+
         for song in songs:
+            print(id(song), song.title)
             QListWidgetItem(song.title, self.song_list)
 
         self.song_list.setCurrentRow(-1)
