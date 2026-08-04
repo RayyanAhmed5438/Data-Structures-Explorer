@@ -47,40 +47,59 @@ class MusicPlayerApplication(Application):
 
     def play_song(self, index):
 
-            if not(0 <= index < len(self.get_songs())):
-                return None
-            
-            self.current_index = index
-            previous = index > 0
-            next = index < len(self.get_songs()) - 1
-    
-            song = self.get_songs()[index]
+        print("PLAY SONG", index)
 
-            if song == self.current_song:
-                if not self.is_playing():
-                    self.player.play()
-                return song, previous, next
+        if not(0 <= index < len(self.get_songs())):
+            return None
 
             
-            self.current_song = song
-
-            url = QUrl.fromLocalFile(song.path)
-
-            media = QMediaContent(url)
-
-
-            self.player.setMedia(media)
-
-            self.player.play()
+        self.current_index = index
+        previous = index > 0
+        next = index < len(self.get_songs()) - 1
     
+        song = self.get_songs()[index]
+
+        if song == self.current_song:
+            if not self.is_playing():
+                self.player.play()
             return song, previous, next
 
-    def on_player_error(self):
-        self.current_index = -1
-        self.current_song = None
+            
+        self.current_song = song
 
+        url = QUrl.fromLocalFile(song.path)
+
+        media = QMediaContent(url)
+
+
+        self.player.setMedia(media)
+
+        self.player.play()
+    
+        return song, previous, next
+
+    def get_playback_state(self):
+
+        if self.current_song is None:
+            return None
+
+        previous = self.current_index > 0
+        next = self.current_index < len(self.get_songs()) - 1
+
+        return (
+            self.current_song,
+            previous,
+            next
+        )
+
+    def on_player_error(self):
+        
         if self.on_error:
-            self.on_error(self.player.errorString())
+            self.on_error(
+                "Unable to play this audio file.\n\n"
+                "The file may use an unsupported codec or is corrupted."
+            )
+        print("After error:", self.current_index, self.current_song.title if self.current_song else None)
 
     def update_current_index(self):
 
@@ -97,6 +116,8 @@ class MusicPlayerApplication(Application):
     
     def next(self):
 
+        print("NEXT:", self.current_index)
+
         if self.current_index == -1:
             return None
     
@@ -104,6 +125,7 @@ class MusicPlayerApplication(Application):
     
 
     def previous(self):
+        print("PREVIOUS:", self.current_index)
 
         if self.current_index == -1:
             return None
@@ -165,6 +187,8 @@ class MusicPlayerApplication(Application):
         return result
 
     def move_up(self, index):
+
+        print("MOVE:", self.current_index)
 
         self.library_manager.move_up(index)
         self.update_current_index()

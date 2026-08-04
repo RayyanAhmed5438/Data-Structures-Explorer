@@ -209,8 +209,6 @@ class MainWindow(QMainWindow):
 
     def show_playback_error(self, error):
 
-            print(repr(error))
-
             if not error:
                 error = (
                     f"Unable to play this audio file.\n\n"
@@ -221,6 +219,10 @@ class MainWindow(QMainWindow):
                 self, 
                 "Playback Error",
                 error
+            )
+
+            self.update_playback_ui(
+                self.current_application.get_playback_state()
             )
             
 
