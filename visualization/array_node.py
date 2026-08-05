@@ -24,7 +24,8 @@ class ArrayNode(QGraphicsItemGroup):
         self,
         song,
         index,
-        selected=False
+        selected=False,
+        empty = False
     ):
         super().__init__()
 
@@ -52,18 +53,24 @@ class ArrayNode(QGraphicsItemGroup):
         font = QFont("Segoe UI", 11)
         font.setBold(True)
 
-        metrics = QFontMetrics(font)
-
-        self.text.setPlainText(
-            metrics.elidedText(
-                song.title,
-                Qt.ElideRight,
-                self.BOX_WIDTH - 20
-            )
-        )
-
         self.text.setFont(font)
 
+        if empty:
+            self.text.setPlainText("")
+        
+        else:
+            metrics = QFontMetrics(font)
+
+            self.text.setPlainText(
+                metrics.elidedText(
+                    song.title,
+                    Qt.ElideRight,
+                    self.BOX_WIDTH - 20
+                )
+            )
+            self.text.setToolTip(song.title)
+
+        
         self.text.setDefaultTextColor(
             Qt.white
         )
@@ -75,7 +82,7 @@ class ArrayNode(QGraphicsItemGroup):
             (self.BOX_HEIGHT - rect.height()) / 2
         )
 
-        self.text.setToolTip(song.title)
+        
 
         self.addToGroup(self.text)
 
@@ -108,8 +115,6 @@ class ArrayNode(QGraphicsItemGroup):
         return self.text.scenePos()
 
     def set_title(self, title):
-
-        print("SET TTITLE:", id(self.song), self.song.title, "->", title)
 
         font = self.text.font()
 

@@ -83,6 +83,14 @@ class VisualizationPanel(QWidget):
             finished
         )
 
+    def animate_insert(self, index, song_name, finished=None):
+
+        self.array_visualizer.animate_insert(
+            index,
+            song_name,
+            finished
+        )
+
 
     def is_animating(self):
         return self.array_visualizer.animating

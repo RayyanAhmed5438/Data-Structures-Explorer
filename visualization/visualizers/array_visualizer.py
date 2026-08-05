@@ -175,6 +175,8 @@ class ArrayVisualizer:
         if not self.animations:
             self.timer.stop()
 
+    # ======== SWAPPING FUNCTIONS ==================
+
     def animate_swap(self, first, second, finished=None):
 
             if self.animating:
@@ -187,6 +189,52 @@ class ArrayVisualizer:
             self.animate_to_temp(
                 first, second
             )
+
+    def animate_to_temp(self, first, second):
+    
+        node = self.items[first]
+    
+    
+        self.show_temp("", first)
+    
+        floating = self.create_floating_text(
+            node.text
+        )
+    
+        node.hide_text()
+    
+        temp = self.get_temp_position(first)
+    
+        rect = floating.boundingRect()
+    
+        destination = QPointF(
+            temp.x() + (self.BOX_WIDTH - rect.width()) / 2,
+            temp.y() + (self.BOX_HEIGHT - rect.height()) / 2
+        )
+
+        self.animate_text(
+            floating,
+            destination,
+            finished=lambda: self.finish_a_to_temp(
+            node,
+            floating,
+            first,
+            second
+        )
+        )
+
+    def finish_a_to_temp(self, node, floating, first, second):
+    
+        self.scene.removeItem(floating)
+
+        self.show_temp(
+            node.song.title, first
+        )
+
+        self.animate_b_to_a(
+            first,
+            second
+        )
 
     def animate_b_to_a(self, first, second):
 
@@ -258,6 +306,136 @@ class ArrayVisualizer:
             self.swap_finished()
             self.swap_finished = None
 
+    #==================================================
+
+    #==============INSERTION FUNCTIONS================
+
+    def add_empty_node(self):
+
+        self.scene.fit_with_margin(100)
+
+        node = ArrayNode(
+            None,
+            len(self.items),
+            empty=True
+        )
+
+        node.setPos(
+            self.get_box_position(
+                len(self.items)
+            )
+        )
+
+        self.scene.addItem(node)
+        self.items.append(node)
+
+    def animate_insert(self, index, song_title, finished=None):
+
+        self.add_empty_node()
+
+        self.show_temp(song_title, index)
+
+        self.animate_shift_chain(
+            insert_index=index,
+            current_index=len(self.items) - 2,
+            finished=lambda:
+                self.animate_temp_to_array(
+                    index,
+                    finished
+                )
+        )
+
+    def animate_temp_to_array(self, index, finished=None):
+
+        self.items[index].hide_text()
+
+        floating = self.create_floating_text(self.temp_text)
+        self.temp_text.hide()
+
+        destination = self.items[
+            index
+        ].get_text_scene_position()
+
+        self.animate_text(
+            floating,
+            destination,
+            finished=lambda:
+                self.finish_insert(
+                    index,
+                    floating,
+                    finished
+                )
+        )
+
+    def finish_insert(self, index, floating, finished=None):
+
+        destination = self.items[index]
+
+        destination.set_title(floating.toPlainText())
+
+        destination.show_text()
+
+        self.scene.removeItem(floating)
+
+        self.hide_temp()
+
+        if finished:
+            finished()
+
+    def animate_shift_chain(self, insert_index, current_index, finished=None):
+
+        if current_index < insert_index:
+            if finished:
+                finished()
+            return
+        else:
+            self.animate_shift(
+                current_index,
+                finished=lambda:
+                self.animate_shift_chain(
+                    insert_index,
+                    current_index - 1,
+                    finished
+                )
+            )
+
+    def animate_shift(self, from_index, finished=None):
+
+        node = self.items[from_index]
+
+        floating = self.create_floating_text(node.text)
+
+        node.hide_text()
+
+       
+
+        destination_node = self.items[from_index+1]
+
+        self.animate_text(
+            floating,
+            destination_node.get_text_scene_position(),
+            finished=lambda:
+                self.finish_shift(
+                    node,
+                    destination_node,
+                    floating,
+                    finished
+                )
+        )
+
+    def finish_shift(self, source_node,destination_node, floating, finished):
+
+        destination_node.set_title(
+            source_node.song.title
+        )
+
+        destination_node.show_text()
+
+        self.scene.removeItem(floating)
+
+        if finished:
+            finished()
+
     def center_text(self, text_item, x, y):
 
         rect = text_item.boundingRect()
@@ -284,51 +462,6 @@ class ArrayVisualizer:
             box.y() - 170
         )
 
-    def animate_to_temp(self, first, second):
-
-        node = self.items[first]
-
-
-        self.show_temp("", first)
-
-        floating = self.create_floating_text(
-            node.text
-        )
-
-        node.hide_text()
-
-        temp = self.get_temp_position(first)
-
-        rect = floating.boundingRect()
-
-        destination = QPointF(
-            temp.x() + (self.BOX_WIDTH - rect.width()) / 2,
-            temp.y() + (self.BOX_HEIGHT - rect.height()) / 2
-        )
-
-        self.animate_text(
-            floating,
-            destination,
-            finished=lambda: self.finish_a_to_temp(
-            node,
-            floating,
-            first,
-            second
-        )
-        )
-
-    def finish_a_to_temp(self, node, floating, first, second):
-
-        self.scene.removeItem(floating)
-
-        self.show_temp(
-            node.song.title, first
-        )
-
-        self.animate_b_to_a(
-            first,
-            second
-        )
 
     def create_temp_box(self):
 

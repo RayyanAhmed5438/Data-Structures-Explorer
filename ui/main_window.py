@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtWidgets import (
     QInputDialog,
     QMainWindow,
@@ -341,6 +343,18 @@ class MainWindow(QMainWindow):
             return
 
         index = position - 1
+        song_name = os.path.splitext(
+            os.path.basename(file)
+        )[0]
+
+        self.workspace_page.visualization_panel.animate_insert(
+            index,
+            song_name,
+            finished=lambda:
+                self.finish_add_song(file, index)
+            
+        )
+    def finish_add_song(self, file, index):
 
         result = self.current_application.add_song(file, index)
 
