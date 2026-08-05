@@ -186,6 +186,10 @@ class MusicPlayerApplication(Application):
 
         return result
 
+    def validate_add_song(self, file):
+
+        return self.library_manager.validate_add_song(file)
+
     def move_up(self, index):
 
         print("MOVE:", self.current_index)

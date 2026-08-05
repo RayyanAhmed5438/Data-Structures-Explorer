@@ -328,6 +328,27 @@ class MainWindow(QMainWindow):
         if not file:
             return
 
+        result = self.current_application.validate_add_song(file)
+        
+        if result == AddSongResult.ALREADY_IN_LIBRARY:
+        
+            QMessageBox.information(
+                self,
+                "Song Exists",
+                "This song is already in the selected library."
+            )
+            return
+        
+        elif result == AddSongResult.DUPLICATE_NAME:
+        
+            QMessageBox.warning(
+                self,
+                "Duplicate Song",
+                "A file with this name already exists in the library."
+            )
+            return
+        
+
         songs = self.current_application.get_songs()
 
         position, ok = QInputDialog.getInt(
@@ -343,6 +364,7 @@ class MainWindow(QMainWindow):
             return
 
         index = position - 1
+        
         song_name = os.path.splitext(
             os.path.basename(file)
         )[0]
@@ -354,28 +376,13 @@ class MainWindow(QMainWindow):
                 self.finish_add_song(file, index)
             
         )
+
+        
     def finish_add_song(self, file, index):
 
-        result = self.current_application.add_song(file, index)
+        self.current_application.add_song(file, index)
 
-        if result == AddSongResult.SUCCESS:
-            self.refresh_workspace()
-
-        elif result == AddSongResult.ALREADY_IN_LIBRARY:
-
-            QMessageBox.information(
-                self,
-                "Song Exists",
-                "This song is already in the selected library."
-            )
-
-        elif result == AddSongResult.DUPLICATE_NAME:
-
-            QMessageBox.warning(
-                self,
-                "Duplicate Song",
-                "A file with this name already exists in the library."
-            )
+        self.refresh_workspace()
 
     def move_up(self, index):
 

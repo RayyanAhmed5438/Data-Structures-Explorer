@@ -80,16 +80,15 @@ class LibraryManager:
 
     def add_song(self, source_path, index):
 
+        result = self.validate_add_song(source_path)
+
+        if result != AddSongResult.SUCCESS:
+            return result
+
         destination = os.path.join(
             self.library_path,
             os.path.basename(source_path)
         )
-
-        if os.path.abspath(source_path) == os.path.abspath(destination):
-            return AddSongResult.ALREADY_IN_LIBRARY
-
-        if os.path.exists(destination):
-            return AddSongResult.DUPLICATE_NAME
 
         shutil.copy2(
             source_path, destination
@@ -100,6 +99,21 @@ class LibraryManager:
         self.songs.insert(index,song)
 
         self.save_playlist()
+
+        return AddSongResult.SUCCESS
+
+    def validate_add_song(self, source_path):
+
+        destination = os.path.join(
+            self.library_path,
+            os.path.basename(source_path)
+        )
+
+        if os.path.abspath(source_path) == os.path.abspath(destination):
+            return AddSongResult.ALREADY_IN_LIBRARY
+
+        if os.path.exists(destination):
+            return AddSongResult.DUPLICATE_NAME
 
         return AddSongResult.SUCCESS
 
