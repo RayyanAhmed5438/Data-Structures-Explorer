@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import (
+    QInputDialog,
     QMainWindow,
     QMessageBox,
     QStackedWidget,
@@ -322,11 +323,26 @@ class MainWindow(QMainWindow):
             "",
             "Audio Files (*.mp3 *.wav *.ogg *.flac *.m4a)"
         )
-
         if not file:
             return
 
-        result = self.current_application.add_song(file)
+        songs = self.current_application.get_songs()
+
+        position, ok = QInputDialog.getInt(
+            self,
+            "Insert Song",
+            f"Insert at position (1-{len(songs)+1}):",
+            len(songs) + 1,
+            1,
+            len(songs) + 1
+        )
+
+        if not ok:
+            return
+
+        index = position - 1
+
+        result = self.current_application.add_song(file, index)
 
         if result == AddSongResult.SUCCESS:
             self.refresh_workspace()

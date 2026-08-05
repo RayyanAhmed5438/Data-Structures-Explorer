@@ -83,9 +83,7 @@ class ArrayNode(QGraphicsItemGroup):
             str(index)
         )
 
-        self.index_text.setFont(
-            QFont("Segoe UI", 9)
-        )
+        self.index_text.setFont(font)
 
         self.index_text.setDefaultTextColor(
             QColor(170,170,170)

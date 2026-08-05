@@ -78,7 +78,7 @@ class LibraryManager:
 
         self.save_playlist()
 
-    def add_song(self, source_path):
+    def add_song(self, source_path, index):
 
         destination = os.path.join(
             self.library_path,
@@ -97,7 +97,7 @@ class LibraryManager:
 
         song = self.scanner.create_song(destination)
 
-        self.songs.append(song)
+        self.songs.insert(index,song)
 
         self.save_playlist()
 

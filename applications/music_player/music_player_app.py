@@ -176,9 +176,9 @@ class MusicPlayerApplication(Application):
 
         
 
-    def add_song(self, file_path):
+    def add_song(self, file_path, index):
 
-        result = self.library_manager.add_song(file_path)
+        result = self.library_manager.add_song(file_path, index)
 
         if result == AddSongResult.SUCCESS:
             
