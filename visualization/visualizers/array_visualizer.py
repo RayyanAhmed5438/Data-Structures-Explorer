@@ -15,9 +15,6 @@ class ArrayVisualizer:
 
         self.selected_index = -1
 
-        self.marker_text = None
-        self.marker_index = -1
-
         self.items = []
         self.current_array = None
 
@@ -89,9 +86,6 @@ class ArrayVisualizer:
             self.items.append(node)
 
         self.update_scene_rect()
-
-    
-
     
     def create_floating_text(self, text_item):
 
@@ -128,7 +122,6 @@ class ArrayVisualizer:
 
         if not self.timer.isActive():
             self.timer.start(16)
-
 
     def update_animation(self):
 
@@ -697,12 +690,6 @@ class ArrayVisualizer:
 
         self.selected_index = index
 
-        self._redraw()
-
-    def set_marker(self, index, text):
-
-        self.marker_index = index
-        self.marker_text = text
         self._redraw()
 
     def _redraw(self):

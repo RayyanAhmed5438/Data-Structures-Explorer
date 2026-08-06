@@ -148,16 +148,22 @@ class MainWindow(QMainWindow):
 
         state = self.current_application.get_visualization_state()
 
-        if state.selected_index is not None:
-            self.workspace_page.set_current_song(state.selected_index)
-            self.workspace_page.set_selected_index(state.selected_index)
+        selected = (
+            state.selected_index
+            if state.selected_index is not None
+            else -1
+        )
 
-        if state.marker is not None:
-            index, text = state.marker
-            self.workspace_page.set_marker(index, text)
+        self.workspace_page.set_current_song(selected)
+        self.workspace_page.set_selected_index(selected)
+
 
         self.workspace_page.set_playing(
             self.current_application.is_playing()
+        )
+
+        self.workspace_page.set_song(
+            self.current_application.get_current_song_title()
         )
             
     def create_menu(self):
@@ -272,18 +278,14 @@ class MainWindow(QMainWindow):
 
         state = self.current_application.get_visualization_state()
 
-        if state.selected_index is not None:
-            self.workspace_page.set_selected_index(
-                state.selected_index
-            )
+        selected = (
+            state.selected_index
+            if state.selected_index is not None
+            else -1
+        )
 
-        if state.marker is not None:
-            index, text = state.marker
+        self.workspace_page.set_selected_index(selected)
 
-            self.workspace_page.set_marker(
-                index,
-                text
-            )
 
     def delete_song(self, index):
 

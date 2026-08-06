@@ -109,6 +109,9 @@ class MusicPlayerApplication(Application):
                 self.current_song
             )
         except ValueError:
+
+            self.player.stop()
+
             self.current_song = None
             self.current_index = -1
     
@@ -140,16 +143,6 @@ class MusicPlayerApplication(Application):
     def is_playing(self):
         return self.player.state() == QMediaPlayer.PlayingState
 
-    def get_marker(self):
-
-        if self.current_index == -1:
-            return None
-
-        return (
-            self.current_index,
-            "Currently Playing"
-        )
-
     def get_visualization_state(self):
 
         if self.current_index == -1:
@@ -157,10 +150,6 @@ class MusicPlayerApplication(Application):
 
         return VisualizationState(
             selected_index=self.current_index,
-            marker=(
-                self.current_index,
-                "               Currently playing⬆️"
-            )
         )
 
     def delete_song(self, index):
@@ -200,4 +189,9 @@ class MusicPlayerApplication(Application):
         self.library_manager.move_down(index)
         self.update_current_index()
 
-        
+    def get_current_song_title(self):
+    
+        if self.current_song is None:
+            return "No song playing"
+
+        return self.current_song.title    

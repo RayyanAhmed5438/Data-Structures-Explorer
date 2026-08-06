@@ -7,8 +7,6 @@ class Application:
         self.name = name
         self.description = description
 
-    def get_marker(self):
-        return None
 
     def get_visualization_state(self):
         return VisualizationState()
