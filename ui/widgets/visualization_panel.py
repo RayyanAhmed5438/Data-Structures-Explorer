@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGraphicsView, QFrame
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPropertyAnimation
 from visualization.graphics_scene import GraphicsScene
 from visualization.visualizers.array_visualizer import ArrayVisualizer
 
@@ -35,6 +35,10 @@ class VisualizationPanel(QWidget):
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
+        self.scroll_animation = QPropertyAnimation(
+            self.view.horizontalScrollBar(), b"value"
+        )
+        self.scroll_animation.setDuration(400)
 
         self.array_visualizer = ArrayVisualizer(self.scene)
 
@@ -49,40 +53,33 @@ class VisualizationPanel(QWidget):
     def set_selected_index(self, index):
         self.array_visualizer.set_selected_index(index)
 
-    def center_on_index(self, index):
+    def smooth_scroll_to_index(self, index):
 
-        x = self.array_visualizer.START_X + index * (
-            self.array_visualizer.BOX_WIDTH + 
-            self.array_visualizer.SPACING
-            )
-
-        self.view.centerOn(
-            x + self.array_visualizer.BOX_WIDTH / 2,
-            self.array_visualizer.START_Y
+        scene_x = (
+            self.array_visualizer.START_X +
+            index * (
+                self.array_visualizer.BOX_WIDTH + 
+                self.array_visualizer.SPACING
+            )+
+            self.array_visualizer.BOX_WIDTH / 2
         )
 
-    def center_on_insert(self):
+        self.smooth_scroll_to(scene_x)
 
-        self.center_on_index(
-            self.array_visualizer.get_item_count() - 1
-        )
-
-    def center_on_swap(self, first, second):
+    def smooth_scroll_to_swap(self, first, second):
 
         middle = (first + second) / 2
 
-        x = (
+        scene_x = (
             self.array_visualizer.START_X +
             middle * (
                 self.array_visualizer.BOX_WIDTH +
                 self.array_visualizer.SPACING
-            )
+            )+
+            self.array_visualizer.BOX_WIDTH / 2
         )
 
-        self.view.centerOn(
-            x + self.array_visualizer.BOX_WIDTH / 2,
-            self.array_visualizer.START_Y
-        )
+        self.smooth_scroll_to(scene_x)
 
     def animate_swap(self, first, second, finished=None):
 
@@ -106,6 +103,38 @@ class VisualizationPanel(QWidget):
         self.array_visualizer.animate_delete(
             index, finished
         )
+
+    def smooth_scroll_to(self, scene_x):
+
+        viewport_width = self.view.viewport().width()
+
+        target = int(
+            scene_x -
+            viewport_width / 2
+        )
+
+        target = max(
+            self.view.horizontalScrollBar().minimum(),
+            min(
+                target,
+                self.view.horizontalScrollBar().maximum()
+            )
+        )
+
+        self.scroll_animation.stop()
+
+        current = self.scroll_animation.currentValue()
+
+        if current is None:
+            current = self.view.horizontalScrollBar().value()
+
+        self.scroll_animation.setStartValue(
+            current
+        )
+
+        self.scroll_animation.setEndValue(target)
+
+        self.scroll_animation.start()
 
 
     def is_animating(self):

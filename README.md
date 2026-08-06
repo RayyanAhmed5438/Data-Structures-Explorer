@@ -1,21 +1,57 @@
 # Data Structures Explorer
 
-A desktop application built with **Python** and **PyQt5** that demonstrates the working of various data structures through interactive visualizations using a music library.
+A desktop application built with **Python** and **PyQt5** that teaches data structures through interactive visualizations and real-world applications.
+
+The first application is a **Music Player**, where the playlist is represented as an **Array**, allowing users to observe data structure operations through smooth animations.
+
+---
 
 ## Features
 
-- Load songs from a local music library
-- Visualize different data structures
-- Interactive graphical interface
-- Modular and extensible architecture
-- Built using PyQt5 Graphics View Framework
+- 🎵 Music library management
+- ▶️ Audio playback
+- 📊 Interactive data structure visualizations
+- ✨ Smooth animations for data structure operations
+- 🧩 Modular architecture designed for multiple applications and data structures
+- 🖥️ Built with the PyQt5 Graphics View Framework
 
-## Current Data Structures
+---
 
-- Array ✅
-- Singly Linked List (In Progress)
-- Doubly Linked List (Planned)
-- More coming soon...
+## Implemented Data Structures
+
+| Data Structure | Status |
+|---------------|--------|
+| Array | ✅ Complete |
+| Singly Linked List | 🚧 In Progress |
+| Doubly Linked List | 📋 Planned |
+| Circular Singly Linked List | 📋 Planned |
+| Circular Doubly Linked List | 📋 Planned |
+
+---
+
+## Current Visualizations
+
+### Music Player
+
+The Music Player demonstrates how an **Array** behaves using a playlist.
+
+Supported operations include:
+
+- Insert
+- Delete
+- Swap
+- Move Up
+- Move Down
+- Selection & Current Item Highlighting
+
+Each operation is accompanied by custom animations, including:
+
+- Smooth text movement
+- Temporary storage visualization
+- Fade animations
+- Automatic camera scrolling
+
+---
 
 ## Technologies Used
 
@@ -23,9 +59,11 @@ A desktop application built with **Python** and **PyQt5** that demonstrates the 
 - PyQt5
 - Object-Oriented Programming (OOP)
 
+---
+
 ## Project Structure
 
-```
+```text
 Data-Structures-Explorer/
 │
 ├── applications/
@@ -38,6 +76,8 @@ Data-Structures-Explorer/
 ├── main.py
 └── README.md
 ```
+
+---
 
 ## Getting Started
 
@@ -53,17 +93,27 @@ git clone https://github.com/RayyanAhmed5438/Data-Structures-Explorer.git
 pip install PyQt5
 ```
 
-### Run the application
+### Run
 
 ```bash
 python main.py
 ```
 
-## Project Status
+---
 
-🚧 Currently under development.
+## Roadmap
 
-The visualization engine is functional, while additional data structures, animations, playlist management, and UI improvements are still being implemented.
+- ✅ Array visualization
+- 🚧 Singly Linked List
+- 📋 Doubly Linked List
+- 📋 Circular Singly Linked List
+- 📋 Circular Doubly Linked List
+- 📋 Stack
+- 📋 Queue
+- 📋 Binary Search Tree
+- 📋 Graphs
+
+---
 
 ## License
 

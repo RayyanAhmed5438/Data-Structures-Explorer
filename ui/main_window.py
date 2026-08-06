@@ -307,7 +307,7 @@ class MainWindow(QMainWindow):
         if reply != QMessageBox.Yes:
             return
 
-        self.workspace_page.visualization_panel.center_on_index(index)
+        self.workspace_page.visualization_panel.smooth_scroll_to_index(index)
 
         self.workspace_page.visualization_panel.animate_delete(
             index,
@@ -385,7 +385,7 @@ class MainWindow(QMainWindow):
             finished=lambda:
                 self.finish_add_song(file, index),
             started=lambda:
-                self.workspace_page.visualization_panel.center_on_insert()
+                self.workspace_page.visualization_panel.smooth_scroll_to_index(index)
             
         )
 
@@ -404,7 +404,7 @@ class MainWindow(QMainWindow):
         if index <= 0:
             return
 
-        self.workspace_page.visualization_panel.center_on_swap(
+        self.workspace_page.visualization_panel.smooth_scroll_to_swap(
             index, index-1
         )
 
@@ -430,7 +430,7 @@ class MainWindow(QMainWindow):
         if index >= len(self.current_application.get_songs()) -1:
             return
 
-        self.workspace_page.visualization_panel.center_on_swap(
+        self.workspace_page.visualization_panel.smooth_scroll_to_swap(
             index,
             index + 1
         )

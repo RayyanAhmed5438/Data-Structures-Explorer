@@ -1,6 +1,7 @@
 from visualization.array_node import ArrayNode
 from visualization.graphics_scene import GraphicsScene
 from PyQt5.QtCore import Qt, QPointF, QTimer
+from PyQt5.QtGui import QFontMetrics
 
 class ArrayVisualizer:
 
@@ -300,13 +301,16 @@ class ArrayVisualizer:
 
         self.scene.removeItem(floating)
 
-        self.remove_temp()
+        self.animate_temp_fade(
+            finished=self.finish_swap_animation
+        )
 
-        self.animating = False
+    def finish_swap_animation(self):
 
-        if self.swap_finished:
-            self.swap_finished()
-            self.swap_finished = None
+        finished = self.swap_finished
+        self.swap_finished = None
+
+        self.finish_animation(finished)
 
     #==================================================
 
@@ -328,8 +332,6 @@ class ArrayVisualizer:
 
         self.scene.addItem(node)
         self.items.append(node)
-
-        self.update_scene_rect()
 
     def animate_insert(self, index, song_title, finished=None, started=None):
 
@@ -389,12 +391,10 @@ class ArrayVisualizer:
 
         self.scene.removeItem(floating)
 
-        self.remove_temp()
-
-        self.animating = False
-
-        if finished:
-            finished()
+        self.animate_temp_fade(
+            finished=lambda:
+                self.finish_animation(finished)
+        )
 
     def animate_shift_chain(self, insert_index, current_index, finished=None):
 
@@ -556,24 +556,15 @@ class ArrayVisualizer:
 
         self.animate_temp_fade(
             finished=lambda:
-                self.finish_temp_fade(
+                self.finish_animation(
                     finished
                 )
         )
 
-    def finish_temp_fade(self, finished=None):
-
-        self.remove_temp()
-
-        self.update_scene_rect()
-
-        self.animating = False
-
-        if finished:
-            finished()
+    #===========================================================
 
     def animate_temp_fade(self, finished=None):
-
+    
         animation = {
             "item" : [
                 self.temp_box,
@@ -599,7 +590,16 @@ class ArrayVisualizer:
         if not self.timer.isActive():
             self.timer.start(16)
 
-    #===========================================================
+    def finish_animation(self, finished=None):
+    
+        self.remove_temp()
+
+        self.update_scene_rect()
+
+        self.animating = False
+
+        if finished:
+                finished()
 
     def update_scene_rect(self):
 
@@ -655,7 +655,15 @@ class ArrayVisualizer:
 
     def show_temp(self, song_name, index):
 
-        self.temp_text.setPlainText(song_name)
+        metrics = QFontMetrics(self.temp_text.font())
+
+        display = metrics.elidedText(
+            song_name,
+            Qt.ElideRight,
+            self.BOX_WIDTH - 20
+        )
+
+        self.temp_text.setPlainText(display)
 
         temp = self.get_temp_position(index)
 
@@ -671,6 +679,8 @@ class ArrayVisualizer:
             temp.x(),
             temp.y()
         )
+
+        self.temp_text.setToolTip(song_name)
 
         self.temp_box.show()
         self.temp_text.show()
