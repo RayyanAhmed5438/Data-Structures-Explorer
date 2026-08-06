@@ -133,14 +133,11 @@ class LibraryManager:
         if index >= len(self.songs) -1:
             return
 
-        print("Before:",
-            [song.title for song in self.songs])
-
+        
         self.songs[index], self.songs[index+1] = (
             self.songs[index+1], self.songs[index]
         )
 
         self.save_playlist()
 
-        print("After:",
-            [song.title for song in self.songs])
+        

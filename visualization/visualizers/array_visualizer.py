@@ -1,6 +1,5 @@
 from visualization.array_node import ArrayNode
 from visualization.graphics_scene import GraphicsScene
-from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt, QPointF, QTimer
 
 class ArrayVisualizer:
@@ -70,12 +69,10 @@ class ArrayVisualizer:
         self.scene.clear_scene()
         self.items.clear()
 
-        self.create_temp_box()
-
-        print("Rebuilding:")
+        # self.create_temp_box()
             
         for index, song in enumerate(array.get_all()):
-            print(song.title)
+            
 
             node = ArrayNode(
                 song,
@@ -91,7 +88,7 @@ class ArrayVisualizer:
 
             self.items.append(node)
 
-        self.scene.fit_with_margin(30)
+        self.update_scene_rect()
 
     
     def create_floating_text(self, text_item):
@@ -181,6 +178,8 @@ class ArrayVisualizer:
 
             if self.animating:
                 return
+
+            self.create_temp_box()
 
             self.animating = True
 
@@ -298,7 +297,7 @@ class ArrayVisualizer:
 
         self.scene.removeItem(floating)
 
-        self.hide_temp()
+        self.remove_temp()
 
         self.animating = False
 
@@ -311,8 +310,6 @@ class ArrayVisualizer:
     #==============INSERTION FUNCTIONS================
 
     def add_empty_node(self):
-
-        self.scene.fit_with_margin(100)
 
         node = ArrayNode(
             None,
@@ -329,9 +326,21 @@ class ArrayVisualizer:
         self.scene.addItem(node)
         self.items.append(node)
 
-    def animate_insert(self, index, song_title, finished=None):
+        self.update_scene_rect()
+
+    def animate_insert(self, index, song_title, finished=None, started=None):
+
+        if self.animating:
+            return
+
+        self.animating = True
+
+        self.create_temp_box()
 
         self.add_empty_node()
+
+        if started:
+            started()
 
         self.show_temp(song_title, index)
 
@@ -377,7 +386,9 @@ class ArrayVisualizer:
 
         self.scene.removeItem(floating)
 
-        self.hide_temp()
+        self.remove_temp()
+
+        self.animating = False
 
         if finished:
             finished()
@@ -436,6 +447,18 @@ class ArrayVisualizer:
         if finished:
             finished()
 
+    #=============================================================
+
+    def update_scene_rect(self):
+
+        rect = self.scene.itemsBoundingRect()
+
+        rect.adjust(
+            -80, -10, self.BOX_WIDTH + 80, 10
+        )
+
+        self.scene.setSceneRect(rect)
+
     def center_text(self, text_item, x, y):
 
         rect = text_item.boundingRect()
@@ -459,7 +482,7 @@ class ArrayVisualizer:
     
         return QPointF(
             box.x(),
-            box.y() - 170
+            box.y() - 130
         )
 
 
@@ -480,8 +503,6 @@ class ArrayVisualizer:
             "temp", x + 45, y - 35
         )
 
-
-        self.hide_temp()
 
     def show_temp(self, song_name, index):
 
@@ -506,11 +527,15 @@ class ArrayVisualizer:
         self.temp_text.show()
         self.temp_label.show()
 
-    def hide_temp(self):
+    def remove_temp(self):
 
-        self.temp_box.hide()
-        self.temp_text.hide()
-        self.temp_label.hide()
+        self.scene.removeItem(self.temp_box)
+        self.scene.removeItem(self.temp_text)
+        self.scene.removeItem(self.temp_label)
+
+        self.temp_box = None
+        self.temp_text = None
+        self.temp_label = None
 
     def set_selected_index(self, index):
 
@@ -528,4 +553,5 @@ class ArrayVisualizer:
         if self.current_array is not None:
             self.visualize(self.current_array)
 
-    
+    def get_item_count(self):
+        return len(self.items)

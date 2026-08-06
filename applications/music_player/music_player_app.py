@@ -47,8 +47,7 @@ class MusicPlayerApplication(Application):
 
     def play_song(self, index):
 
-        print("PLAY SONG", index)
-
+    
         if not(0 <= index < len(self.get_songs())):
             return None
 
@@ -99,8 +98,7 @@ class MusicPlayerApplication(Application):
                 "Unable to play this audio file.\n\n"
                 "The file may use an unsupported codec or is corrupted."
             )
-        print("After error:", self.current_index, self.current_song.title if self.current_song else None)
-
+        
     def update_current_index(self):
 
         if self.current_song is None:
@@ -116,8 +114,7 @@ class MusicPlayerApplication(Application):
     
     def next(self):
 
-        print("NEXT:", self.current_index)
-
+        
         if self.current_index == -1:
             return None
     
@@ -125,7 +122,7 @@ class MusicPlayerApplication(Application):
     
 
     def previous(self):
-        print("PREVIOUS:", self.current_index)
+        
 
         if self.current_index == -1:
             return None
@@ -192,7 +189,6 @@ class MusicPlayerApplication(Application):
 
     def move_up(self, index):
 
-        print("MOVE:", self.current_index)
 
         self.library_manager.move_up(index)
         self.update_current_index()

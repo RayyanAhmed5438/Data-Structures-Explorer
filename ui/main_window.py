@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
 
     def refresh_workspace(self):
 
-        print("Refreshing workspace")
+        
 
         self.current_application.refresh_structure()
 
@@ -369,15 +369,18 @@ class MainWindow(QMainWindow):
             os.path.basename(file)
         )[0]
 
+
         self.workspace_page.visualization_panel.animate_insert(
             index,
             song_name,
             finished=lambda:
-                self.finish_add_song(file, index)
+                self.finish_add_song(file, index),
+            started=lambda:
+                self.workspace_page.visualization_panel.center_on_insert()
             
         )
 
-        
+
     def finish_add_song(self, file, index):
 
         self.current_application.add_song(file, index)

@@ -14,14 +14,19 @@ class VisualizationPanel(QWidget):
         self.scene = GraphicsScene()
 
         self.view = QGraphicsView()
+
+
         self.view.setScene(self.scene)
+        
+
         self.view.setBackgroundBrush(Qt.black)
         self.view.setFrameShape(QFrame.NoFrame)
 
+        
         self.view.setStyleSheet("""
         QGraphicsView {
             border:1px solid #444;
-            padding:20px;
+    
             background:#17181C;
             border-radius: 10px;
         }
@@ -29,6 +34,7 @@ class VisualizationPanel(QWidget):
 
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
 
         self.array_visualizer = ArrayVisualizer(self.scene)
 
@@ -58,6 +64,12 @@ class VisualizationPanel(QWidget):
             self.array_visualizer.START_Y
         )
 
+    def center_on_insert(self):
+
+        self.center_on_index(
+            self.array_visualizer.get_item_count() - 1
+        )
+
     def center_on_swap(self, first, second):
 
         middle = (first + second) / 2
@@ -80,15 +92,16 @@ class VisualizationPanel(QWidget):
         self.array_visualizer.animate_swap(
             first,
             second,
-            finished
+            finished,
         )
 
-    def animate_insert(self, index, song_name, finished=None):
+    def animate_insert(self, index, song_name, finished=None, started=None):
 
         self.array_visualizer.animate_insert(
             index,
             song_name,
-            finished
+            finished=finished,
+            started=started
         )
 
 
