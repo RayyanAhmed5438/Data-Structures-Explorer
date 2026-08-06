@@ -106,9 +106,22 @@ class MainWindow(QMainWindow):
         library_path = self.settings.get("library_path")
 
         if library_path:
-            application.load_library(library_path)
 
-            self.refresh_workspace()
+            if os.path.isdir(library_path):
+
+                application.load_library(library_path)
+
+                self.refresh_workspace()
+
+            else:
+                self.settings.set("library_path", None)
+
+                QMessageBox.information(
+                    self,
+                    "Library Not Found",
+                    "Your previously selected music library could not be found.\n\n"
+                    "Please choose a new library."
+                )
 
         self.show_workspace()
 
