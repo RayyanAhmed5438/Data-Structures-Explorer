@@ -167,8 +167,7 @@ class MainWindow(QMainWindow):
         menu.addMenu("Application")
         menu.addMenu("Data Structure")
         menu.addMenu("Help")
-
-    
+   
     def create_pages(self):
         self.stack = QStackedWidget()
 
@@ -182,7 +181,6 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.workspace_page)
 
         self.setCentralWidget(self.stack)
-
 
     def show_home(self):
         self.stack.setCurrentWidget(self.home_page)
@@ -241,7 +239,6 @@ class MainWindow(QMainWindow):
                 self.current_application.get_playback_state()
             )
             
-
     def play_song(self, index):
 
         if self.workspace_page.visualization_panel.is_animating():
@@ -255,7 +252,6 @@ class MainWindow(QMainWindow):
         self.update_playback_ui(
             result
         )
-
 
     def update_playback_ui(self, result):
         if not result:
@@ -306,11 +302,22 @@ class MainWindow(QMainWindow):
             QMessageBox.Yes | QMessageBox.No
         )
 
-        if reply == QMessageBox.Yes:
+        if reply != QMessageBox.Yes:
+            return
 
-            self.current_application.delete_song(index)
+        self.workspace_page.visualization_panel.center_on_index(index)
 
-            self.refresh_workspace()
+        self.workspace_page.visualization_panel.animate_delete(
+            index,
+            finished=lambda:
+                self.finish_delete_song(index)
+        )
+
+    def finish_delete_song(self, index):
+
+        self.current_application.delete_song(index)
+
+        self.refresh_workspace()
 
     def add_song(self):
 

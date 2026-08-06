@@ -91,6 +91,8 @@ class ArrayVisualizer:
         self.update_scene_rect()
 
     
+
+    
     def create_floating_text(self, text_item):
 
         floating = self.scene.draw_text(
@@ -152,10 +154,18 @@ class ArrayVisualizer:
             start = animation["start"]
             end = animation["end"]
 
-            x = start.x() + (end.x() - start.x()) * progress
-            y = start.y() + (end.y() - start.y()) * progress
+            if animation.get("opacity"):
+                opacity = start + (end - start) * progress
 
-            animation["item"].setPos(x, y)
+                for item in animation["item"]:
+                    item.setOpacity(opacity)
+
+            else:
+
+                x = start.x() + (end.x() - start.x()) * progress
+                y = start.y() + (end.y() - start.y()) * progress
+
+                animation["item"].setPos(x, y)
 
             if progress == 1:
                 finished.append(animation)
@@ -449,6 +459,155 @@ class ArrayVisualizer:
 
     #=============================================================
 
+    #============= DELETION ANIMATION ===========================
+
+
+    def animate_delete(self, index, finished=None):
+
+        if self.animating:
+            return
+
+        self.animating = True
+
+        self.create_temp_box()
+
+        node = self.items[index]
+
+        self.show_temp("", index)
+
+        floating = self.create_floating_text(
+            node.text
+        )
+
+        node.hide_text()
+
+        temp = self.get_temp_position(index)
+
+        rect = floating.boundingRect()
+
+        destination = QPointF(
+            temp.x() + (self.BOX_WIDTH - rect.width()) / 2,
+            temp.y() + (self.BOX_HEIGHT - rect.height()) /2
+        )
+
+
+        self.animate_text(
+            floating,
+            destination,
+            finished=lambda:    
+                self.finish_delete_to_temp(
+                    node,
+                    floating,
+                    index,
+                    finished
+                )
+        )
+
+    def finish_delete_to_temp(self, node, floating, index, finished=None):
+
+        self.scene.removeItem(floating)
+
+        self.show_temp(
+            node.song.title, index
+        )
+
+        self.animate_shift_left_chain(
+            current_index=index + 1,
+            finished=lambda:
+                self.finish_delete(finished)
+        )
+
+    def animate_shift_left(self, from_index, finished=None):
+    
+        node = self.items[from_index]
+
+        destination_node = self.items[from_index - 1]
+    
+        floating = self.create_floating_text(node.text)
+    
+        node.hide_text()
+              
+        self.animate_text(
+            floating,
+            destination_node.get_text_scene_position(),
+            finished=lambda:
+                self.finish_shift(  # reused from insertion
+                    node,
+                    destination_node,
+                    floating,
+                    finished
+                )
+        )
+
+    def animate_shift_left_chain(self, current_index, finished=None):
+
+        if current_index >= len(self.items):
+            if finished:
+                finished()
+            return
+
+        self.animate_shift_left(
+            current_index,
+            finished=lambda:
+                self.animate_shift_left_chain(
+                    current_index + 1,
+                    finished
+                )
+        )
+
+    def finish_delete(self, finished=None):
+
+        last = self.items.pop()
+
+        self.scene.removeItem(last)
+
+        self.animate_temp_fade(
+            finished=lambda:
+                self.finish_temp_fade(
+                    finished
+                )
+        )
+
+    def finish_temp_fade(self, finished=None):
+
+        self.remove_temp()
+
+        self.update_scene_rect()
+
+        self.animating = False
+
+        if finished:
+            finished()
+
+    def animate_temp_fade(self, finished=None):
+
+        animation = {
+            "item" : [
+                self.temp_box,
+                self.temp_text,
+                self.temp_label
+            ],
+
+            "start": 1.0,
+
+            "end": 0.0,
+
+            "elapsed": 0,
+
+            "duration": 250,
+
+            "finished": finished,
+
+            "opacity": True
+        }
+
+        self.animations.append(animation)
+
+        if not self.timer.isActive():
+            self.timer.start(16)
+
+    #===========================================================
+
     def update_scene_rect(self):
 
         rect = self.scene.itemsBoundingRect()
@@ -468,7 +627,6 @@ class ArrayVisualizer:
             y + (self.BOX_HEIGHT - rect.height()) / 2
         )
 
-
     def get_box_position(self, index):
     
             return QPointF(
@@ -484,7 +642,6 @@ class ArrayVisualizer:
             box.x(),
             box.y() - 130
         )
-
 
     def create_temp_box(self):
 
@@ -502,7 +659,6 @@ class ArrayVisualizer:
         self.temp_label = self.scene.draw_text(
             "temp", x + 45, y - 35
         )
-
 
     def show_temp(self, song_name, index):
 

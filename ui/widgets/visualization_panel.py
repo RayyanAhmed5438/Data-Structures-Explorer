@@ -104,6 +104,12 @@ class VisualizationPanel(QWidget):
             started=started
         )
 
+    def animate_delete(self, index, finished=None):
+
+        self.array_visualizer.animate_delete(
+            index, finished
+        )
+
 
     def is_animating(self):
         return self.array_visualizer.animating
