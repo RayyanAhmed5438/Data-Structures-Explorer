@@ -192,3 +192,7 @@ class WorkspacePage(QWidget):
 
     def set_selected_index(self, index):  # for visualization
         self.visualization_panel.set_selected_index(index)
+
+    def set_visualization_mode(self, mode):
+
+        self.sidebar.set_visualization_mode(mode)

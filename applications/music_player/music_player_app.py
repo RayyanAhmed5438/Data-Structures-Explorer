@@ -1,4 +1,4 @@
-from applications.music_player.add_song_result import AddSongResult
+from core.enums.add_song_result import AddSongResult
 from applications.music_player.library_manager import LibraryManager
 from core.application import Application
 from structures.array_ds import ArrayDS

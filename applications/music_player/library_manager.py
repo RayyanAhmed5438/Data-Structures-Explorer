@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from applications.music_player.add_song_result import AddSongResult
+from core.enums.add_song_result import AddSongResult
 from applications.music_player.playlist_manager import PlaylistManager
 from applications.music_player.scanner import Scanner
 

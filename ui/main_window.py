@@ -7,8 +7,9 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QFileDialog
 )
-from applications.music_player.add_song_result import AddSongResult
+from core.enums.add_song_result import AddSongResult
 from config.settings import SettingsManager
+from core.enums.visualization_mode import VisualizationMode
 from ui.pages.home_page import HomePage
 from ui.pages.workspace_page import WorkspacePage
 from core.application_manager import ApplicationManager
@@ -122,6 +123,10 @@ class MainWindow(QMainWindow):
                     "Your previously selected music library could not be found.\n\n"
                     "Please choose a new library."
                 )
+
+        # self.workspace_page.set_visualization_mode(
+        #     VisualizationMode.LINKED_LIST
+        # )
 
         self.show_workspace()
 

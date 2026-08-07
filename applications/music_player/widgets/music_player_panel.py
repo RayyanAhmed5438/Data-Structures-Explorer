@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from applications.music_player.widgets.song_list_widget import SongListWidget
+from core.enums.visualization_mode import VisualizationMode
 
 class MusicPlayerPanel(QWidget):
 
@@ -103,6 +104,16 @@ class MusicPlayerPanel(QWidget):
             background:#3E6AE1;
             color:white;
         }
+        QPushButton#operations{
+
+            min-width:150px;
+            max-width:180px;
+
+            min-height:40px;
+            max-height:40px;
+
+            border-radius:8px;
+        }
     """)
 
         layout = QVBoxLayout(self)
@@ -145,10 +156,10 @@ class MusicPlayerPanel(QWidget):
 
         layout.addWidget(card)
 
-        library = QLabel("Library")
-        library.setObjectName("title")
+        self.section_title = QLabel("Library")
+        self.section_title.setObjectName("title")
 
-        layout.addWidget(library)
+        layout.addWidget(self.section_title)
 
         self.song_list = SongListWidget()
 
@@ -159,6 +170,43 @@ class MusicPlayerPanel(QWidget):
         )
 
         layout.addWidget(self.song_list, 1)
+
+        #=============== LINKED LIST ===================
+
+        self.operations_widget = QWidget()
+
+        operations_layout = QVBoxLayout(self.operations_widget)
+
+        self.swap_left_button = QPushButton("⬅ Swap Left")
+
+        self.delete_current_button = QPushButton("🗑 Delete")
+
+        self.swap_right_button = QPushButton("Swap Right ➡")
+
+        for button in (
+            self.swap_left_button,
+            self.delete_current_button,
+            self.swap_right_button,
+        ):
+            button.setObjectName("operations")
+
+        operations_layout.addStretch()
+
+        operations_layout.addWidget(self.swap_left_button, alignment=Qt.AlignCenter)
+        operations_layout.addSpacing(10)
+
+        operations_layout.addWidget(self.delete_current_button, alignment=Qt.AlignCenter)
+        operations_layout.addSpacing(10)
+
+        operations_layout.addWidget(self.swap_right_button, alignment=Qt.AlignCenter)
+
+        operations_layout.addStretch()
+
+        self.operations_widget.hide()
+
+        layout.addWidget(self.operations_widget)
+
+        #=================================================
 
         layout.addStretch()
 
@@ -252,3 +300,18 @@ class MusicPlayerPanel(QWidget):
             self.toggle_button.setText("⏸")
         else:
             self.toggle_button.setText("▶")
+
+    def set_visualization_mode(self, mode):
+
+        if mode == VisualizationMode.ARRAY:
+
+            self.section_title.setText("Library")
+
+            self.song_list.show()
+
+        elif mode == VisualizationMode.LINKED_LIST:
+
+            self.section_title.setText("Linked List Operations")
+
+            self.song_list.hide()
+            self.operations_widget.show()
