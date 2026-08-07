@@ -34,3 +34,6 @@ class DataStructure(ABC):
     @abstractmethod
     def get_all(self):
         pass
+
+    def __iter__(self):
+        pass
