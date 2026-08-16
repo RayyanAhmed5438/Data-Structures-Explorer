@@ -244,4 +244,12 @@ class WorkspacePage(QWidget):
             self.sidebar.set_visualization_mode(mode)
             self.visualization_panel.set_visualization_mode(mode)
 
+            self.visualization_panel.visualize(
+                self.application.get_structure()
+            )
+
+            self.visualization_panel.set_selected_index(
+                self.application.current_index
+            )
+
         

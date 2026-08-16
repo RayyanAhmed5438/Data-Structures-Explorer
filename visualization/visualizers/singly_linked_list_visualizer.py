@@ -30,7 +30,7 @@ class SinglyLinkedListNodeItem(QGraphicsRectItem):
     DATA_WIDTH = 110
     NEXT_WIDTH = 170
 
-    def __init__(self, song, next_address):
+    def __init__(self, song, address, next_address):
 
         super().__init__(
             0,
@@ -41,6 +41,7 @@ class SinglyLinkedListNodeItem(QGraphicsRectItem):
 
         self.song = song
         self.next_address = next_address
+        self.address = address
 
         self.setPen(
             QPen(Qt.white, 2)
@@ -236,6 +237,7 @@ class SinglyLinkedListVisualizer:
 
             node = SinglyLinkedListNodeItem(
                 current.data,
+                self.format_address(id(current)),
                 next_address
             )
 
@@ -285,6 +287,11 @@ class SinglyLinkedListVisualizer:
         # Then create the arrows
         # -----------------------------------------
 
+        for index, node in enumerate(self.items):
+            node.set_selected(
+                index == self.selected_index
+            )
+
         for index in range(len(self.items) - 1):
 
             self.add_arrow(
@@ -295,10 +302,7 @@ class SinglyLinkedListVisualizer:
         # -----------------------------------------
 
         if self.items:
-            null_arrow = self.create_null_arrow(
-                self.items[-1]
-            )
-            self.arrows.append(null_arrow)
+            self.add_null_arrow(self.items[-1])
 
         # Update scene bounds    
 
@@ -401,6 +405,85 @@ class SinglyLinkedListVisualizer:
 
         return arrow
 
+    def add_null_arrow(self, node):
+
+        arrow = self.create_null_arrow(node)
+
+        self.arrows.append(arrow)
+
+        return arrow
+
+
+    def add_reverse_arrow(self, source, target):
+
+        arrow = self.create_reverse_arrow(
+            source,
+            target
+        )
+
+        self.arrows.append(arrow)
+
+        return arrow
+
+    def create_reverse_arrow(self, source, target):
+
+        # Start at bottom-center of source
+        start_x = (
+            source.x() + SinglyLinkedListNodeItem.WIDTH / 2
+        )
+
+        start_y = (
+            source.y() + SinglyLinkedListNodeItem.HEIGHT 
+        )
+
+        end_x = (
+            target.x() + SinglyLinkedListNodeItem.WIDTH / 2
+        )
+
+        end_y = (
+            target.y() + SinglyLinkedListNodeItem.HEIGHT 
+        )
+
+        # Route below the source, then left
+        # then upward into the target
+
+        route_y = start_y + 90
+
+        vertical_down = QGraphicsLineItem(
+            start_x, start_y, start_x, route_y
+        )
+
+        horizontal = QGraphicsLineItem(
+            start_x, route_y, end_x, route_y
+        )
+
+        vertical_up = QGraphicsLineItem(
+            end_x, route_y, end_x, end_y
+        )
+
+        for line in (vertical_down, horizontal, vertical_up):
+
+            line.setPen(
+                QPen(Qt.white, 2)
+            )
+
+            self.scene.addItem(line)
+
+        arrow_head = self.create_arrow_head(
+            end_x, end_y, end_x, route_y
+        )
+
+        return{
+            "source": source,
+            "target" : target,
+            "items": (
+                vertical_down,
+                horizontal,
+                vertical_up,
+                arrow_head
+            )
+        }
+
     def remove_arrow(self, source, target):
 
         for arrow in self.arrows:
@@ -408,6 +491,22 @@ class SinglyLinkedListVisualizer:
             if (
                 arrow["source"] is source
                 and arrow["target"] is target
+            ):
+
+                for item in arrow["items"]:
+                    self.scene.removeItem(item)
+
+                self.arrows.remove(arrow)
+
+                return
+
+    def remove_null_arrow(self, node):
+
+        for arrow in self.arrows:
+
+            if (
+                arrow.get("type") == "null"
+                and arrow["source"] is node
             ):
 
                 for item in arrow["items"]:
@@ -434,7 +533,10 @@ class SinglyLinkedListVisualizer:
         end_x = start_x + 100
         end_y = start_y + 80
 
+        # -----------------------------------------
         # Horizontal segment
+        # -----------------------------------------
+
         horizontal = QGraphicsLineItem(
             start_x,
             start_y,
@@ -448,7 +550,10 @@ class SinglyLinkedListVisualizer:
 
         self.scene.addItem(horizontal)
 
+        # -----------------------------------------
         # Vertical segment
+        # -----------------------------------------
+
         vertical = QGraphicsLineItem(
             end_x,
             start_y,
@@ -462,15 +567,21 @@ class SinglyLinkedListVisualizer:
 
         self.scene.addItem(vertical)
 
+        # -----------------------------------------
         # Arrow head
-        self.create_arrow_head(
+        # -----------------------------------------
+
+        arrow_head = self.create_arrow_head(
             end_x,
             end_y,
             end_x,
             start_y
         )
 
+        # -----------------------------------------
         # NULL label
+        # -----------------------------------------
+
         null_text = QGraphicsTextItem("NULL")
 
         null_text.setDefaultTextColor(Qt.white)
@@ -490,7 +601,21 @@ class SinglyLinkedListVisualizer:
 
         self.scene.addItem(null_text)
 
-        return horizontal, vertical
+        # -----------------------------------------
+        # Store NULL arrow
+        # -----------------------------------------
+
+        return {
+            "source": node,
+            "target": None,
+            "type": "null",
+            "items": (
+                horizontal,
+                vertical,
+                arrow_head,
+                null_text
+            )
+        }
 
     def create_arrow_head(
         self,
@@ -625,11 +750,8 @@ class SinglyLinkedListVisualizer:
 
         # Hide all arrows while nodes are moving
         for arrow in self.arrows:
-            if isinstance(arrow, tuple):
-                for item in arrow:
-                    item.hide()
-            else:
-                arrow.hide()
+            for item in arrow["items"]:
+                item.hide()
 
         animation = QVariantAnimation()
         animation.setDuration(500)
@@ -723,9 +845,7 @@ class SinglyLinkedListVisualizer:
                 )
 
                 previous.set_next_address(
-                    self.format_address(
-                        id(second)
-                    )
+                    second.address
                 )
 
                 self.add_arrow(
@@ -752,9 +872,7 @@ class SinglyLinkedListVisualizer:
             if after is not None:
 
                 first.set_next_address(
-                    self.format_address(
-                        id(after)
-                    )
+                    after.address
                 )
 
                 self.add_arrow(
@@ -766,10 +884,21 @@ class SinglyLinkedListVisualizer:
 
                 first.set_next_address("NULL")
 
+                self.remove_null_arrow(second)
+
+                self.add_null_arrow(first)
+
             QTimer.singleShot(
                 1000,
                 step_three
             )
+
+        def finish_swap():
+
+            self.animating = False
+
+            if finished:
+                finished()
 
         def step_three():
 
@@ -785,19 +914,19 @@ class SinglyLinkedListVisualizer:
                 )
 
             second.set_next_address(
-                self.format_address(
-                    id(first)
-                )
+                first.address
             )
 
-            self.add_arrow(
+            self.add_reverse_arrow(
                 second,
                 first
             )
 
-            self.animating = False
-
-            if finished:
-                finished()
-
+            # IMPORTANT:
+            # Keep the third arrow visible BEFORE
+            # allowing the actual node swap to happen.
+            QTimer.singleShot(
+                1000,
+                finish_swap
+            )
         step_one()

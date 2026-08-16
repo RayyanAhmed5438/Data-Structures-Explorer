@@ -69,10 +69,15 @@ class VisualizationPanel(QWidget):
 
     def set_selected_index(self, index):
 
+        self.array_visualizer.selected_index = index
+
+        self.singly_linked_list_visualizer.selected_index = index
+
         if self.visualization_mode == VisualizationMode.ARRAY:
             self.array_visualizer.set_selected_index(index)
 
         elif self.visualization_mode == VisualizationMode.LINKED_LIST:
+
             self.singly_linked_list_visualizer.set_selected_index(index)
 
     def smooth_scroll_to_index(self, index):
