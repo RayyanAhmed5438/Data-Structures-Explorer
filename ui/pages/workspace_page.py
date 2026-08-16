@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
 from applications.music_player.widgets.music_player_panel import MusicPlayerPanel
 from ui.widgets.visualization_panel import VisualizationPanel
 import os
-
+from core.enums.visualization_mode import VisualizationMode
 
 class WorkspacePage(QWidget):
 
@@ -86,6 +86,9 @@ class WorkspacePage(QWidget):
 
         self.add_song_button = QPushButton("Add a Song")
 
+        self.array_button = QPushButton("Array")
+        self.linked_list_button = QPushButton("Linked List")
+
         toolbar = QHBoxLayout()
         toolbar.setContentsMargins(10, 10, 10, 10)
         toolbar.setSpacing(8)
@@ -102,6 +105,10 @@ class WorkspacePage(QWidget):
         toolbar.addSpacing(15)
 
         toolbar.addWidget(self.add_song_button)
+        toolbar.addSpacing(20)
+
+        toolbar.addWidget(self.array_button)
+        toolbar.addWidget(self.linked_list_button)
 
         toolbar.addStretch()
 
@@ -153,6 +160,18 @@ class WorkspacePage(QWidget):
         self.add_song_button.clicked.connect(
             self.addSongRequested.emit
         )
+
+        self.array_button.clicked.connect(
+            lambda: self.set_visualization_mode(
+                VisualizationMode.ARRAY
+            )
+        )
+
+        self.linked_list_button.clicked.connect(
+            lambda: self.set_visualization_mode(
+                VisualizationMode.LINKED_LIST
+            )
+        )
         
         splitter.addWidget(self.sidebar)
         splitter.addWidget(self.visualization_panel)
@@ -195,4 +214,34 @@ class WorkspacePage(QWidget):
 
     def set_visualization_mode(self, mode):
 
+        self.application.set_visualization_mode(mode)
+
+        self.application.refresh_structure()
+
         self.sidebar.set_visualization_mode(mode)
+        self.visualization_panel.set_visualization_mode(mode)
+
+        self.visualization_panel.visualize(
+            self.application.get_structure()
+        )
+
+        if mode == VisualizationMode.LINKED_LIST:
+
+            self.sidebar.set_previous_enabled(False)
+
+        elif mode == VisualizationMode.ARRAY:
+
+            index = self.application.current_index
+
+            self.sidebar.set_previous_enabled(index > 0)
+
+    def visualize(self, structure):
+
+        self.visualization_panel.visualize(structure)
+
+    def set_visualization_ui_mode(self, mode):
+    
+            self.sidebar.set_visualization_mode(mode)
+            self.visualization_panel.set_visualization_mode(mode)
+
+        

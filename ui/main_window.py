@@ -154,8 +154,11 @@ class MainWindow(QMainWindow):
             self.settings.get("library_path")
         )
 
+        self.workspace_page.set_visualization_ui_mode(
+            self.current_application.get_visualization_mode()
+        )
 
-        self.workspace_page.visualize_array(
+        self.workspace_page.visualize(
             self.current_application.get_structure()
         )
 
@@ -183,6 +186,16 @@ class MainWindow(QMainWindow):
         self.workspace_page.set_song(
             self.current_application.get_current_song_title()
         )
+
+        if selected == -1:
+            has_songs = bool(
+                self.current_application.get_songs()
+            )
+
+            self.workspace_page.set_navigation(
+                False,
+                has_songs
+            )
             
     def create_menu(self):
         menu = self.menuBar()
@@ -284,7 +297,16 @@ class MainWindow(QMainWindow):
         song, previous_enabled, next_enabled = result
 
         self.workspace_page.set_song(song.title)
-        self.workspace_page.set_navigation(previous_enabled, next_enabled)
+        if (
+            self.current_application.get_visualization_mode()
+            == VisualizationMode.LINKED_LIST
+        ):
+            previous_enabled = False
+
+        self.workspace_page.set_navigation(
+            previous_enabled,
+            next_enabled
+        )
 
         self.workspace_page.set_current_song(
             self.current_application.current_index  # for highlight (UI)
@@ -422,9 +444,22 @@ class MainWindow(QMainWindow):
         if index <= 0:
             return
 
-        self.workspace_page.visualization_panel.smooth_scroll_to_swap(
-            index, index-1
-        )
+        if(
+            self.current_application.get_visualization_mode()
+            == VisualizationMode.ARRAY
+        ):
+
+            self.workspace_page.visualization_panel.smooth_scroll_to_swap(
+                index, index-1
+            )
+
+        elif (
+            self.current_application.get_visualization_mode()
+            == VisualizationMode.LINKED_LIST
+        ):
+            self.workspace_page.visualization_panel.center_on_linked_swap(
+                index, index - 1
+            )
 
         self.workspace_page.visualization_panel.animate_swap(
             index,

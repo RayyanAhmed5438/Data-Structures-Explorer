@@ -28,6 +28,8 @@ class MusicPlayerPanel(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.selected_index = -1
+
         self.setupUI()
 
     def setupUI(self):
@@ -222,9 +224,49 @@ class MusicPlayerPanel(QWidget):
             self.nextRequested.emit
         )
 
+        self.delete_current_button.clicked.connect(
+            lambda: self._delete_current()
+        )
+
+        self.swap_left_button.clicked.connect(
+            lambda: self._swap_left()
+        )
+
+        self.swap_right_button.clicked.connect(
+            lambda: self._swap_right()
+        )
+
         self.song_list.itemClicked.connect(
             self.item_clicked
         )
+
+    def _delete_current(self):
+
+        index = self.get_selected_index()
+
+        if index is not None:
+            self.deleteRequested.emit(index)
+
+
+    def _swap_left(self):
+        index = self.get_selected_index()
+
+        if index is not None:
+            self.moveUpRequested.emit(index)
+
+
+    def _swap_right(self):
+        index = self.get_selected_index()
+
+        if index is not None:
+            self.moveDownRequested.emit(index)
+
+    def get_selected_index(self):
+
+        if self.selected_index < 0:
+            return None
+
+        return self.selected_index
 
     def item_clicked(self, item):
         index = self.song_list.row(item)
@@ -288,6 +330,8 @@ class MusicPlayerPanel(QWidget):
 
     def set_current_song(self, index):  # for highlight (UI)
 
+        self.selected_index = index
+
         self.song_list.blockSignals(True)
 
         self.song_list.setCurrentRow(index)
@@ -301,6 +345,9 @@ class MusicPlayerPanel(QWidget):
         else:
             self.toggle_button.setText("▶")
 
+    def set_previous_enabled(self, enabled):
+        self.previous_button.setEnabled(enabled)
+
     def set_visualization_mode(self, mode):
 
         if mode == VisualizationMode.ARRAY:
@@ -308,6 +355,7 @@ class MusicPlayerPanel(QWidget):
             self.section_title.setText("Library")
 
             self.song_list.show()
+            self.operations_widget.hide()
 
         elif mode == VisualizationMode.LINKED_LIST:
 

@@ -2,9 +2,11 @@ from core.enums.add_song_result import AddSongResult
 from applications.music_player.library_manager import LibraryManager
 from core.application import Application
 from structures.array_ds import ArrayDS
+from structures.linked_list.singly_linked_list import SinglyLinkedList
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QUrl
 from core.visualization_state import VisualizationState
+from core.enums.visualization_mode import VisualizationMode
 
 class MusicPlayerApplication(Application):
 
@@ -27,17 +29,33 @@ class MusicPlayerApplication(Application):
         self.on_error = None
 
         self.player.error.connect(self.on_player_error)
-        
+
+        self.visualization_mode = VisualizationMode.ARRAY
+
+    def set_visualization_mode(self, mode):
+
+        self.visualization_mode = mode
+
+    def get_visualization_mode(self):
+        return self.visualization_mode
 
     def load_library(self, folder):
         self.library_manager.load_library(folder)
         self.refresh_structure()
 
     def refresh_structure(self):
-        self.current_structure = ArrayDS()
+
+        if self.visualization_mode == VisualizationMode.ARRAY:
+
+            self.current_structure = ArrayDS()
+
+        elif self.visualization_mode == VisualizationMode.LINKED_LIST:
+
+            self.current_structure = SinglyLinkedList()
 
         for song in self.library_manager.get_songs():
             self.current_structure.insert(song)
+
 
     def get_structure(self):
         return self.current_structure
@@ -50,7 +68,6 @@ class MusicPlayerApplication(Application):
     
         if not(0 <= index < len(self.get_songs())):
             return None
-
             
         self.current_index = index
         previous = index > 0
@@ -119,9 +136,11 @@ class MusicPlayerApplication(Application):
 
         
         if self.current_index == -1:
-            return None
+            self.current_index = 0
+        else:
+            self.current_index += 1
     
-        return self.play_song(self.current_index + 1)
+        return self.play_song(self.current_index)
     
 
     def previous(self):
