@@ -136,6 +136,12 @@ class VisualizationPanel(QWidget):
                     first, finished
                 )
 
+            elif second == first + 1:
+
+                self.singly_linked_list_visualizer.animate_swap_right(
+                    first, finished
+                )
+
     def animate_insert(self, index, song_name, finished=None, started=None):
 
         self.array_visualizer.animate_insert(

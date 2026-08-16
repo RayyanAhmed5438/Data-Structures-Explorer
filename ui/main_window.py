@@ -483,10 +483,23 @@ class MainWindow(QMainWindow):
         if index >= len(self.current_application.get_songs()) -1:
             return
 
-        self.workspace_page.visualization_panel.smooth_scroll_to_swap(
-            index,
-            index + 1
-        )
+        if(
+            self.current_application.get_visualization_mode()
+            == VisualizationMode.ARRAY
+        ):
+
+            self.workspace_page.visualization_panel.smooth_scroll_to_swap(
+                index,
+                index + 1
+            )
+
+        elif (
+            self.current_application.get_visualization_mode()
+            == VisualizationMode.ARRAY
+        ):
+            self.workspace_page.visualization_panel.center_on_linked_swap(
+                index, index + 1
+            )
 
         self.workspace_page.visualization_panel.animate_swap(
             index,

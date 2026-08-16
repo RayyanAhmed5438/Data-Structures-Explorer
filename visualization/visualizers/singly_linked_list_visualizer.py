@@ -204,6 +204,7 @@ class SinglyLinkedListVisualizer:
 
         self.animating = False
 
+        self.null_endpoint = None
         
 
     def visualize(self, linked_list):
@@ -212,6 +213,8 @@ class SinglyLinkedListVisualizer:
 
         self.items.clear()
         self.arrows.clear()
+
+        self.null_endpoint = None
 
         if linked_list is None:
             return
@@ -302,6 +305,8 @@ class SinglyLinkedListVisualizer:
         # -----------------------------------------
 
         if self.items:
+            self.create_null_endpoint(self.items[-1])
+
             self.add_null_arrow(self.items[-1])
 
         # Update scene bounds    
@@ -516,26 +521,62 @@ class SinglyLinkedListVisualizer:
 
                 return
 
+    def create_null_endpoint(self, node):
+
+        if self.null_endpoint is not None:
+            return
+
+        self.null_endpoint = QGraphicsTextItem("NULL")
+
+        self.null_endpoint.setDefaultTextColor(Qt.white)
+
+        self.null_endpoint.setFont(
+            QFont(
+                "Segoe UI",
+                10,
+                QFont.Bold
+            )
+        )
+
+        x = (
+            node.x()
+            + SinglyLinkedListNodeItem.WIDTH
+            + 80
+        )
+
+        y = (
+            node.y()
+            + SinglyLinkedListNodeItem.HEIGHT / 2
+            + 90
+        )
+
+        self.null_endpoint.setPos(
+            x - 20,
+            y + 10
+        )
+
+        self.scene.addItem(self.null_endpoint)
+
+  
     def create_null_arrow(self, node):
 
-        # Start from the right-middle of the NEXT box
+        if self.null_endpoint is None:
+            self.create_null_endpoint(
+                self.items[-1]
+            )
+
         start_x = (
-            node.x() +
-            SinglyLinkedListNodeItem.WIDTH
+            node.x()
+            + SinglyLinkedListNodeItem.WIDTH
         )
 
         start_y = (
-            node.y() +
-            SinglyLinkedListNodeItem.HEIGHT / 2
+            node.y()
+            + SinglyLinkedListNodeItem.HEIGHT / 2
         )
 
-        # Go right, then down
-        end_x = start_x + 100
-        end_y = start_y + 80
-
-        # -----------------------------------------
-        # Horizontal segment
-        # -----------------------------------------
+        end_x = self.null_endpoint.x() + 20
+        end_y = self.null_endpoint.y() - 10
 
         horizontal = QGraphicsLineItem(
             start_x,
@@ -550,10 +591,6 @@ class SinglyLinkedListVisualizer:
 
         self.scene.addItem(horizontal)
 
-        # -----------------------------------------
-        # Vertical segment
-        # -----------------------------------------
-
         vertical = QGraphicsLineItem(
             end_x,
             start_y,
@@ -567,10 +604,6 @@ class SinglyLinkedListVisualizer:
 
         self.scene.addItem(vertical)
 
-        # -----------------------------------------
-        # Arrow head
-        # -----------------------------------------
-
         arrow_head = self.create_arrow_head(
             end_x,
             end_y,
@@ -578,42 +611,14 @@ class SinglyLinkedListVisualizer:
             start_y
         )
 
-        # -----------------------------------------
-        # NULL label
-        # -----------------------------------------
-
-        null_text = QGraphicsTextItem("NULL")
-
-        null_text.setDefaultTextColor(Qt.white)
-
-        null_text.setFont(
-            QFont(
-                "Segoe UI",
-                10,
-                QFont.Bold
-            )
-        )
-
-        null_text.setPos(
-            end_x - 20,
-            end_y + 10
-        )
-
-        self.scene.addItem(null_text)
-
-        # -----------------------------------------
-        # Store NULL arrow
-        # -----------------------------------------
-
         return {
             "source": node,
-            "target": None,
+            "target": "NULL",
             "type": "null",
             "items": (
                 horizontal,
                 vertical,
-                arrow_head,
-                null_text
+                arrow_head
             )
         }
 
@@ -882,10 +887,11 @@ class SinglyLinkedListVisualizer:
 
             else:
 
-                first.set_next_address("NULL")
-
                 self.remove_null_arrow(second)
 
+                first.set_next_address("NULL")
+
+                
                 self.add_null_arrow(first)
 
             QTimer.singleShot(
@@ -929,4 +935,101 @@ class SinglyLinkedListVisualizer:
                 1000,
                 finish_swap
             )
+        step_one()
+
+    def animate_swap_right(self, index, finished = None):
+
+        if self.animating:
+            return
+
+        if index < 0 or index >= len(self.items) - 1:
+            if finished:
+                finished()
+            return
+
+        self.animating = True
+
+        first = self.items[index]
+        second = self.items[index + 1]
+
+        previous = (
+            self.items[index - 1]
+            if index > 0
+            else None
+        )
+
+        after = (
+            self.items[index + 2]
+            if index + 2 < len(self.items)
+            else None
+        )
+
+        def finish_swap():
+            self.animating = False
+
+            if finished:
+                finished()
+
+        def step_three():
+
+            if after is not None:
+
+                self.remove_arrow(
+                    second, after
+                )
+
+            else:
+                self.remove_null_arrow(second)
+
+            second.set_next_address(first.address)
+
+            self.add_reverse_arrow(
+                second, first
+            )
+
+            QTimer.singleShot(
+                1000, finish_swap
+            )
+
+        def step_two():
+
+            self.remove_arrow(
+                first, second
+            )
+
+            if after is not None:
+
+                first.set_next_address(after.address)
+
+                self.add_arrow(first, after)
+
+            else:
+
+                self.remove_null_arrow(second)
+
+                first.set_next_address("NULL")
+
+                self.add_null_arrow(first)
+
+            QTimer.singleShot(
+                1000, step_three
+            )
+        def step_one():
+
+            if previous is not None:
+
+                self.remove_arrow(
+                    previous, first
+                )
+
+                previous.set_next_address(
+                    second.address
+                )
+
+                self.add_arrow(previous, second)
+
+            QTimer.singleShot(
+                1000, step_two
+            )
+
         step_one()
