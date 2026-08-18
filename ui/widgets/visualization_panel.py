@@ -1,4 +1,9 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGraphicsView, QFrame
+from PyQt5.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QGraphicsView, 
+    QFrame,
+)
 from PyQt5.QtCore import Qt, QPropertyAnimation
 from visualization.graphics_scene import GraphicsScene
 from visualization.visualizers.array_visualizer import ArrayVisualizer
@@ -21,7 +26,8 @@ class VisualizationPanel(QWidget):
 
 
         self.view.setScene(self.scene)
-        
+
+        self.zoom_factor = 1.0
 
         self.view.setBackgroundBrush(Qt.black)
         self.view.setFrameShape(QFrame.NoFrame)
@@ -49,6 +55,9 @@ class VisualizationPanel(QWidget):
 
         self.singly_linked_list_visualizer = SinglyLinkedListVisualizer(self.scene)
 
+        
+
+        
 
         layout.addWidget(self.view)
 
@@ -197,6 +206,30 @@ class VisualizationPanel(QWidget):
 
         self.scroll_animation.start()
 
+    def zoom_in(self):
+
+        if self.zoom_factor >= 2.5:
+            return
+
+        self.view.scale(
+            1.15,
+            1.15
+        )
+
+        self.zoom_factor *= 1.15
+
+
+    def zoom_out(self):
+
+        if self.zoom_factor <= 0.4:
+            return
+
+        self.view.scale(
+            1 / 1.15,
+            1 / 1.15
+        )
+
+        self.zoom_factor /= 1.15
 
     def is_animating(self):
         return self.array_visualizer.animating

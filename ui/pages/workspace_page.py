@@ -75,6 +75,8 @@ class WorkspacePage(QWidget):
 
     def setup_ui(self):
 
+        self.visualization_panel = VisualizationPanel()
+
         main_layout = QVBoxLayout()
 
         self.back_button = QPushButton("←")
@@ -111,6 +113,24 @@ class WorkspacePage(QWidget):
         toolbar.addWidget(self.linked_list_button)
 
         toolbar.addStretch()
+
+        self.zoom_in_button = QPushButton("+")
+        self.zoom_out_button = QPushButton("-")
+
+        self.zoom_in_button.setFixedSize(55, 30)
+        self.zoom_out_button.setFixedSize(55, 30)
+
+        self.zoom_in_button.clicked.connect(
+            self.visualization_panel.zoom_in
+        )
+
+        self.zoom_out_button.clicked.connect(
+            self.visualization_panel.zoom_out
+        )
+
+        toolbar.addWidget(self.zoom_in_button)
+        toolbar.addSpacing(10)
+        toolbar.addWidget(self.zoom_out_button)
 
         self.back_button.clicked.connect(self.backRequested.emit)
 
@@ -151,7 +171,7 @@ class WorkspacePage(QWidget):
 
         #=======================================
         
-        self.visualization_panel = VisualizationPanel()
+        
 
         self.choose_button.clicked.connect(
              self.chooseLibraryRequested.emit
