@@ -335,7 +335,7 @@ class SinglyLinkedListVisualizer:
         # Target = top-center of next node
         end_x = (
             next_node.x() +
-            SinglyLinkedListNodeItem.WIDTH / 2
+            SinglyLinkedListNodeItem.DATA_WIDTH
         )
 
         end_y = next_node.y()
@@ -430,6 +430,193 @@ class SinglyLinkedListVisualizer:
 
         return arrow
 
+    def add_insert_arrow(self, source, target):
+
+        # Start from the right side of PREVIOUS
+        start_x = (
+            source.x() +
+            SinglyLinkedListNodeItem.WIDTH
+        )
+
+        start_y = (
+            source.y() +
+            SinglyLinkedListNodeItem.HEIGHT / 2
+        )
+
+        # Go horizontally right until directly below
+        # the DATA/NEXT divider of NEW
+        turn_x = (
+            target.x() +
+            SinglyLinkedListNodeItem.DATA_WIDTH - 40
+        )
+
+        # Enter NEW from its bottom
+        end_y = (
+            target.y() +
+            SinglyLinkedListNodeItem.HEIGHT
+        )
+
+        # -----------------------------
+        # _
+        # -----------------------------
+
+        horizontal = QGraphicsLineItem(
+            start_x,
+            start_y,
+            turn_x,
+            start_y
+        )
+
+        horizontal.setPen(
+            QPen(Qt.white, 2)
+        )
+
+        self.scene.addItem(horizontal)
+
+        # -----------------------------
+        # |
+        # -----------------------------
+
+        vertical = QGraphicsLineItem(
+            turn_x,
+            start_y,
+            turn_x,
+            end_y
+        )
+
+        vertical.setPen(
+            QPen(Qt.white, 2)
+        )
+
+        self.scene.addItem(vertical)
+
+        # Arrow points UP into NEW
+        arrow_head = self.create_arrow_head(
+            turn_x,
+            end_y,
+            turn_x,
+            start_y
+        )
+
+        arrow = {
+            "source": source,
+            "target": target,
+            "type": "insert",
+            "items": (
+                horizontal,
+                vertical,
+                arrow_head
+            )
+        }
+
+        self.arrows.append(arrow)
+
+        return arrow
+
+    def add_straight_down_arrow(
+        self,
+        source,
+        target
+    ):
+
+        x = (
+            source.x() +
+            SinglyLinkedListNodeItem.DATA_WIDTH
+        )
+
+        start_y = (
+            source.y() +
+            SinglyLinkedListNodeItem.HEIGHT
+        )
+
+        end_y = target.y()
+
+        line = QGraphicsLineItem(
+            x,
+            start_y,
+            x,
+            end_y
+        )
+
+        line.setPen(
+            QPen(Qt.white, 2)
+        )
+
+        self.scene.addItem(line)
+
+        arrow_head = self.create_arrow_head(
+            x,
+            end_y,
+            x,
+            start_y
+        )
+
+        arrow = {
+            "source": source,
+            "target": target,
+            "type": "insert_down",
+            "items": (
+                line,
+                arrow_head
+            )
+        }
+
+        self.arrows.append(arrow)
+
+        return arrow
+
+    def add_straight_null_arrow(self, node):
+
+        # The DATA/NEXT divider of NEW
+        x = (
+            node.x() +
+            SinglyLinkedListNodeItem.DATA_WIDTH
+        )
+
+        start_y = (
+            node.y() +
+            SinglyLinkedListNodeItem.HEIGHT
+        )
+
+        # Same point used by the existing NULL arrow
+        end_y = (
+            self.null_endpoint.y() - 10
+        )
+
+        line = QGraphicsLineItem(
+            x,
+            start_y,
+            x,
+            end_y
+        )
+
+        line.setPen(
+            QPen(Qt.white, 2)
+        )
+
+        self.scene.addItem(line)
+
+        arrow_head = self.create_arrow_head(
+            x,
+            end_y,
+            x,
+            start_y
+        )
+
+        arrow = {
+            "source": node,
+            "target": "NULL",
+            "type": "insert_null_down",
+            "items": (
+                line,
+                arrow_head
+            )
+        }
+
+        self.arrows.append(arrow)
+
+        return arrow
+    
     def create_reverse_arrow(self, source, target):
 
         # Start at bottom-center of source
@@ -732,82 +919,6 @@ class SinglyLinkedListVisualizer:
 
         return center_x, center_y
 
-    def animate_swap(self, first, second, finished=None):
-
-        if self.animating:
-            return
-
-        if not (
-            0 <= first < len(self.items)
-            and 0 <= second < len(self.items)
-        ):
-            if finished:
-                finished()
-            return
-
-        self.animating = True
-
-        first_item = self.items[first]
-        second_item = self.items[second]
-
-        first_pos = first_item.pos()
-        second_pos = second_item.pos()
-
-        # Hide all arrows while nodes are moving
-        for arrow in self.arrows:
-            for item in arrow["items"]:
-                item.hide()
-
-        animation = QVariantAnimation()
-        animation.setDuration(500)
-        animation.setStartValue(0.0)
-        animation.setEndValue(1.0)
-
-        def update(value):
-
-            progress = float(value)
-
-            first_x = (
-                first_pos.x() +
-                (second_pos.x() - first_pos.x()) * progress
-            )
-
-            first_y = (
-                first_pos.y() +
-                (second_pos.y() - first_pos.y()) * progress
-            )
-
-            second_x = (
-                second_pos.x() +
-                (first_pos.x() - second_pos.x()) * progress
-            )
-
-            second_y = (
-                second_pos.y() +
-                (first_pos.y() - second_pos.y()) * progress
-            )
-
-            first_item.setPos(first_x, first_y)
-            second_item.setPos(second_x, second_y)
-
-        def finish():
-
-            self.animating = False
-
-            # Put them exactly at their destinations
-            first_item.setPos(second_pos)
-            second_item.setPos(first_pos)
-
-            if finished:
-                finished()
-
-            self.swap_animation = None
-
-        animation.valueChanged.connect(update)
-        animation.finished.connect(finish)
-
-        self.swap_animation = animation
-        animation.start()
 
     def animate_swap_left(self, index, finished=None):
 
@@ -1033,3 +1144,457 @@ class SinglyLinkedListVisualizer:
             )
 
         step_one()
+
+    def reposition_null_endpoint(self, node):
+    
+        x = (
+            node.x()
+            + SinglyLinkedListNodeItem.WIDTH
+            + 80
+        )
+
+        y = (
+            node.y()
+            + SinglyLinkedListNodeItem.HEIGHT / 2
+            + 90
+        )
+
+        self.null_endpoint.setPos(
+            x - 20,
+            y + 10
+        )
+
+
+    def animate_insert(
+        self,
+        index,
+        song_name,
+        finished=None,
+        started=None
+    ):
+
+        if self.animating:
+            return
+
+        if index < 0 or index > len(self.items):
+
+            if finished:
+                finished()
+
+            return
+
+        self.temp_address_text = None
+
+        self.animating = True
+
+        # -----------------------------------------
+        # Existing nodes
+        # -----------------------------------------
+
+        previous = (
+            self.items[index - 1]
+            if index > 0
+            else None
+        )
+
+        next_node = (
+            self.items[index]
+            if index < len(self.items)
+            else None
+        )
+
+        # -----------------------------------------
+        # New node position
+        # -----------------------------------------
+
+        if previous is None and next_node is not None:
+
+            # =====================================
+            # INSERT AT BEGINNING
+            #
+            # Put NEW directly before FIRST.
+            # =====================================
+
+            new_x = (
+                next_node.x()
+                - SinglyLinkedListNodeItem.WIDTH
+                - self.NODE_GAP_X
+            )
+
+            new_y = (
+                next_node.y()
+                - self.NODE_GAP_Y
+            )
+
+
+        elif previous is not None:
+
+            # =====================================
+            # MIDDLE AND END USE THE SAME DESIGN
+            #
+            # Put NEW directly above:
+            # - NEXT, or
+            # - the existing NULL endpoint
+            # =====================================
+
+            if next_node is not None:
+
+                # Directly above NEXT
+                new_x = next_node.x()
+
+                new_y = (
+                    min(
+                        previous.y(),
+                        next_node.y()
+                    )
+                    - 180
+                )
+
+            else:
+
+                # Directly above the existing NULL.
+                # Align NEW's DATA/NEXT divider with
+                # the existing NULL arrow endpoint.
+                null_arrow_x = (
+                    self.null_endpoint.x() + 20
+                )
+
+                new_x = (
+                    null_arrow_x
+                    - SinglyLinkedListNodeItem.DATA_WIDTH
+                )
+
+                new_y = (
+                    min(
+                        previous.y(),
+                        self.null_endpoint.y()
+                    )
+                    - 180
+                )
+
+
+        else:
+
+            # =====================================
+            # EMPTY LIST
+            # =====================================
+
+            new_x = self.START_X
+            new_y = self.START_Y
+
+        # -----------------------------------------
+        # Determine the temporary NEXT address
+        # -----------------------------------------
+
+        if next_node is not None:
+
+            next_address = next_node.address
+
+        else:
+
+            next_address = "NULL"
+
+        # -----------------------------------------
+        # Create the new visual node
+        # -----------------------------------------
+
+        new_node = SinglyLinkedListNodeItem(
+            song_name,
+            "NEW",
+            next_address
+        )
+
+        new_node.setPos(
+            new_x,
+            new_y
+        )
+
+        self.scene.addItem(new_node)
+
+        # Keep it available during animation
+        self.items.insert(
+            index,
+            new_node
+        )
+
+        # -----------------------------------------
+        # Address label
+        # -----------------------------------------
+
+        address_text = QGraphicsTextItem(
+            "NEW"
+        )
+
+        address_text.setDefaultTextColor(
+            Qt.white
+        )
+
+        address_text.setFont(
+            QFont(
+                "Segoe UI",
+                9
+            )
+        )
+
+        address_width = (
+            address_text.boundingRect().width()
+        )
+
+        address_text.setPos(
+            new_x +
+            (
+                SinglyLinkedListNodeItem.WIDTH -
+                address_width
+            ) / 2,
+
+            new_y +
+            SinglyLinkedListNodeItem.HEIGHT +
+            12
+        )
+
+        self.scene.addItem(
+            address_text
+        )
+
+        self.temp_address_text = address_text
+
+        # -----------------------------------------
+        # Selection
+        # -----------------------------------------
+
+        new_node.set_selected(False)
+
+        # -----------------------------------------
+        # If something actually started the
+        # insertion animation
+        # -----------------------------------------
+
+        if started:
+            started()
+
+        # -----------------------------------------
+        # STEP 1
+        #
+        # previous -> next
+        # becomes
+        # previous -> NEW
+        # -----------------------------------------
+
+        def step_one():
+
+            # =====================================
+            # INSERT AT BEGINNING
+            # =====================================
+
+            if previous is None:
+
+                # There is no old pointer to remove.
+                # Just show NEW -> FIRST.
+                QTimer.singleShot(
+                    1000,
+                    step_two
+                )
+
+                return
+
+
+            # =====================================
+            # MIDDLE OR END
+            # =====================================
+
+            if next_node is not None:
+
+                # Remove:
+                # PREVIOUS -> NEXT
+
+                self.remove_arrow(
+                    previous,
+                    next_node
+                )
+
+            else:
+
+                # Remove:
+                # PREVIOUS -> NULL
+
+                self.remove_null_arrow(
+                    previous
+                )
+
+
+            # Update visible NEXT value
+            previous.set_next_address(
+                "NEW"
+            )
+
+            # Add:
+            #
+            # PREVIOUS ----|
+            #              ↑
+            #             NEW
+
+            self.add_insert_arrow(
+                previous,
+                new_node
+            )
+
+            QTimer.singleShot(
+                1200,
+                step_two
+            )
+
+        # -----------------------------------------
+        # STEP 2
+        #
+        # NEW -> next
+        # -----------------------------------------
+
+        def step_two():
+
+            # =====================================
+            # NEW -> NEXT
+            # =====================================
+
+            if next_node is not None:
+
+                new_node.set_next_address(
+                    next_node.address
+                )
+
+                # Beginning:
+                # NEW is before FIRST.
+                #
+                # Middle:
+                # NEW is directly above NEXT.
+                #
+                # The same normal method can handle
+                # beginning, while the vertical method
+                # is used for the middle layout.
+
+                if previous is None:
+
+                    self.add_arrow(
+                        new_node,
+                        next_node
+                    )
+
+                else:
+
+                    self.add_straight_down_arrow(
+                        new_node,
+                        next_node
+                    )
+
+
+            # =====================================
+            # NEW -> NULL
+            # =====================================
+
+            else:
+
+                new_node.set_next_address(
+                    "NULL"
+                )
+
+                self.add_straight_null_arrow(
+                    new_node
+                )
+
+
+            QTimer.singleShot(
+                1200,
+                move_nodes
+            )
+        
+        def move_nodes():
+
+            
+
+            rebuild_visualization()
+        
+
+        # -----------------------------------------
+        # STEP 4
+        #
+        # Rebuild arrows at their final positions.
+        # -----------------------------------------
+
+        
+        def rebuild_visualization():
+
+            # Remove temporary NEW address label
+            if self.temp_address_text is not None:
+
+                self.scene.removeItem(
+                    self.temp_address_text
+                )
+
+                self.temp_address_text = None
+
+            # Remove every existing arrow
+            for arrow in self.arrows:
+
+                for item in arrow["items"]:
+
+                    self.scene.removeItem(
+                        item
+                    )
+
+            self.arrows.clear()
+
+            # Reposition every node exactly
+            for i, node in enumerate(self.items):
+
+                x = (
+                    self.START_X +
+                    i * (
+                        SinglyLinkedListNodeItem.WIDTH +
+                        self.NODE_GAP_X
+                    )
+                )
+
+                y = (
+                    self.START_Y +
+                    i * self.NODE_GAP_Y
+                )
+
+                node.setPos(
+                    x,
+                    y
+                )
+
+            # Recreate normal arrows
+            for i in range(
+                len(self.items) - 1
+            ):
+
+                self.add_arrow(
+                    self.items[i],
+                    self.items[i + 1]
+                )
+
+            # Recreate NULL arrow
+            if self.items:
+
+                self.reposition_null_endpoint(
+                    self.items[-1]
+                )
+
+                self.add_null_arrow(
+                    self.items[-1]
+                )
+
+            self.scene.fit_with_margin(
+                400
+            )
+
+            self.animating = False
+
+            if finished:
+                finished()
+
+        QTimer.singleShot(
+            1000, step_one
+        )
+
+

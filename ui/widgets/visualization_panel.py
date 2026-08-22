@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt, QPropertyAnimation
 from visualization.graphics_scene import GraphicsScene
 from visualization.visualizers.array_visualizer import ArrayVisualizer
 from visualization.visualizers.singly_linked_list_visualizer import (
+    SinglyLinkedListNodeItem,
     SinglyLinkedListVisualizer
 )
 from core.enums.visualization_mode import VisualizationMode
@@ -32,6 +33,13 @@ class VisualizationPanel(QWidget):
         self.view.setBackgroundBrush(Qt.black)
         self.view.setFrameShape(QFrame.NoFrame)
 
+        self.view.setDragMode(QGraphicsView.ScrollHandDrag)
+
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.scrollbars_visible = False
+
         self.visualization_mode = VisualizationMode.ARRAY
         
         self.view.setStyleSheet("""
@@ -43,9 +51,7 @@ class VisualizationPanel(QWidget):
         }
         """)
 
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-
+        
         self.scroll_animation = QPropertyAnimation(
             self.view.horizontalScrollBar(), b"value"
         )
@@ -55,13 +61,36 @@ class VisualizationPanel(QWidget):
 
         self.singly_linked_list_visualizer = SinglyLinkedListVisualizer(self.scene)
 
-        
-
-        
-
+              
         layout.addWidget(self.view)
 
         self.setLayout(layout)
+
+    def toggle_scrollbars(self):
+
+        self.scrollbars_visible = (
+            not self.scrollbars_visible
+        )
+
+        if self.scrollbars_visible:
+
+            self.view.setHorizontalScrollBarPolicy(
+                Qt.ScrollBarAsNeeded
+            )
+
+            self.view.setVerticalScrollBarPolicy(
+                Qt.ScrollBarAsNeeded
+            )
+
+        else:
+
+            self.view.setHorizontalScrollBarPolicy(
+                Qt.ScrollBarAlwaysOff
+            )
+
+            self.view.setVerticalScrollBarPolicy(
+                Qt.ScrollBarAlwaysOff
+            )
 
     def visualize_array(self, array):
         self.array_visualizer.visualize(array)
@@ -111,6 +140,31 @@ class VisualizationPanel(QWidget):
 
         self.view.centerOn(x, y)
 
+    def center_on_linked_insert(self, index):
+
+        if(
+            index < 0 or
+            index >= len(self.singly_linked_list_visualizer.items)
+            ):
+
+            return
+
+        node = (
+            self.singly_linked_list_visualizer.items[index]           
+        )
+
+        center_x = (
+            node.x() + SinglyLinkedListNodeItem.WIDTH / 2
+        )
+
+        center_y = (
+            node.y() + SinglyLinkedListNodeItem.HEIGHT / 2
+        )
+
+        self.view.centerOn(center_x, center_y)
+
+        
+
     def smooth_scroll_to_swap(self, first, second):
 
         middle = (first + second) / 2
@@ -153,12 +207,25 @@ class VisualizationPanel(QWidget):
 
     def animate_insert(self, index, song_name, finished=None, started=None):
 
-        self.array_visualizer.animate_insert(
-            index,
-            song_name,
-            finished=finished,
-            started=started
-        )
+        if self.visualization_mode == VisualizationMode.ARRAY:
+
+            self.array_visualizer.animate_insert(
+                index,
+                song_name,
+                finished=finished,
+                started=started
+            )
+
+        elif self.visualization_mode == VisualizationMode.LINKED_LIST:
+
+            self.singly_linked_list_visualizer.animate_insert(
+                index,
+                song_name,
+                finished=finished,
+                started=started
+            )
+
+    
 
     def animate_delete(self, index, finished=None):
 
@@ -232,7 +299,7 @@ class VisualizationPanel(QWidget):
         self.zoom_factor /= 1.15
 
     def is_animating(self):
-        return self.array_visualizer.animating
+        return self.array_visualizer.animating or self.singly_linked_list_visualizer.animating
 
     def set_visualization_mode(self, mode):
 

@@ -425,9 +425,26 @@ class MainWindow(QMainWindow):
             finished=lambda:
                 self.finish_add_song(file, index),
             started=lambda:
-                self.workspace_page.visualization_panel.smooth_scroll_to_index(index)
+                self.center_insertion_animation(index)
             
         )
+
+    def center_insertion_animation(self, index):
+
+        panel = (
+            self.workspace_page.visualization_panel
+        )
+
+        if panel.visualization_mode == VisualizationMode.ARRAY:
+
+            panel.smooth_scroll_to_index(index)
+
+        elif (
+            panel.visualization_mode
+            == VisualizationMode.LINKED_LIST
+        ):
+
+            panel.center_on_linked_insert(index)
 
 
     def finish_add_song(self, file, index):

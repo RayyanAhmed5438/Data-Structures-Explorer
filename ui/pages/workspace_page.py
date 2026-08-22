@@ -114,11 +114,19 @@ class WorkspacePage(QWidget):
 
         toolbar.addStretch()
 
+        self.scroll_toggle_button = QPushButton("☷")
+
+        self.scroll_toggle_button.setFixedSize(55, 30)
+
         self.zoom_in_button = QPushButton("+")
         self.zoom_out_button = QPushButton("-")
 
         self.zoom_in_button.setFixedSize(55, 30)
         self.zoom_out_button.setFixedSize(55, 30)
+
+        self.scroll_toggle_button.clicked.connect(
+            self.visualization_panel.toggle_scrollbars
+        )
 
         self.zoom_in_button.clicked.connect(
             self.visualization_panel.zoom_in
@@ -128,6 +136,8 @@ class WorkspacePage(QWidget):
             self.visualization_panel.zoom_out
         )
 
+        toolbar.addWidget(self.scroll_toggle_button)
+        toolbar.addSpacing(10)
         toolbar.addWidget(self.zoom_in_button)
         toolbar.addSpacing(10)
         toolbar.addWidget(self.zoom_out_button)
@@ -233,6 +243,10 @@ class WorkspacePage(QWidget):
         self.visualization_panel.set_selected_index(index)
 
     def set_visualization_mode(self, mode):
+
+        if self.visualization_panel.is_animating():
+            return
+
 
         self.application.set_visualization_mode(mode)
 

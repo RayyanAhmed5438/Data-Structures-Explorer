@@ -64,10 +64,7 @@ class ArrayVisualizer:
 
     def create_items(self, array):
 
-        print(
-        "ARRAY CREATE:",
-        "selected_index =", self.selected_index
-    )
+      
 
         self.scene.clear_scene()
         self.items.clear()
@@ -702,19 +699,9 @@ class ArrayVisualizer:
         self.temp_label = None
 
     def set_selected_index(self, index):
-
-        print(
-        "ARRAY MARKER:",
-        "received =", index,
-        "old =", self.selected_index
-        )
-
+      
         self.selected_index = index
-
-        print(
-        "ARRAY MARKER: redraw"
-    )
-
+       
         self._redraw()
 
     def _redraw(self):
