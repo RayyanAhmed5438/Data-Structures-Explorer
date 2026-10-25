@@ -193,8 +193,10 @@ class SinglyLinkedListVisualizer:
     NODE_GAP_X = 80
     NODE_GAP_Y = 120
 
-    DELETE_POINTER_PAUSE_MS = 450
-    DELETE_FADE_DURATION_MS = 400
+    # Each arrow component is faded separately before moving to the next.
+    DELETE_LINE_FADE_DURATION_MS = 320
+    DELETE_LINE_PAUSE_MS = 100
+    DELETE_FADE_DURATION_MS = 700
 
     def __init__(self, scene):
 
@@ -1154,8 +1156,10 @@ class SinglyLinkedListVisualizer:
         """
         Animate removal of a node without mutating the underlying linked list.
 
-        The application performs the actual deletion in the finished callback,
-        then refreshes the visualization from the updated data structure.
+        Existing pointer components disappear one at a time. Once the old
+        arrows have been removed, the surviving pointer is created (if needed)
+        and the target node fades out. The application performs the actual
+        deletion in the finished callback and then refreshes the visualization.
         """
         if self.animating:
             return
@@ -1175,47 +1179,150 @@ class SinglyLinkedListVisualizer:
             else None
         )
 
-        # CASE 1: Delete the first node.
-        # Remove its outgoing connection, then fade the node away.
+        # CASE 1: Delete the first node (or the only node).
         if previous is None:
             if next_node is not None:
-                self.remove_arrow(node, next_node)
+                arrows_to_remove = [
+                    self._take_arrow_for_animation(node, next_node)
+                ]
             else:
-                # A single-node list has only its NULL arrow.
-                self.remove_null_arrow(node)
+                arrows_to_remove = [
+                    self._take_arrow_for_animation(
+                        node, "NULL", arrow_type="null"
+                    )
+                ]
 
-                # There is no list left, so do not leave a floating NULL label.
-                if self.null_endpoint is not None:
+            def finish_first_pointer_changes():
+                # An empty list should not leave a detached NULL label behind.
+                if next_node is None and self.null_endpoint is not None:
                     self.scene.removeItem(self.null_endpoint)
                     self.null_endpoint = None
 
-        # CASE 2: Delete the last node.
-        # Redirect the predecessor to NULL before fading the old tail.
-        elif next_node is None:
-            self.remove_arrow(previous, node)
-            self.remove_null_arrow(node)
+                self._fade_deleted_node(node, finished)
 
-            previous.set_next_address("NULL")
-            self.reposition_null_endpoint(previous)
-            self.add_null_arrow(previous)
+            self._animate_remove_arrows(
+                arrows_to_remove,
+                finish_first_pointer_changes
+            )
+            return
 
-        # CASE 3: Delete a middle node.
-        # Remove both arrows around it and bridge predecessor to successor.
-        else:
-            self.remove_arrow(previous, node)
-            self.remove_arrow(node, next_node)
+        # CASE 2: Delete the last node. Remove both old connections in sequence,
+        # then redirect the previous node to NULL before fading the old tail.
+        if next_node is None:
+            arrows_to_remove = [
+                self._take_arrow_for_animation(previous, node),
+                self._take_arrow_for_animation(
+                    node, "NULL", arrow_type="null"
+                )
+            ]
 
+            def finish_last_pointer_changes():
+                previous.set_next_address("NULL")
+                self.reposition_null_endpoint(previous)
+                self.add_null_arrow(previous)
+                self._fade_deleted_node(node, finished)
+
+            self._animate_remove_arrows(
+                arrows_to_remove,
+                finish_last_pointer_changes
+            )
+            return
+
+        # CASE 3: Delete a middle node. Remove its incoming and outgoing arrows
+        # component-by-component, then create the predecessor -> successor arrow.
+        arrows_to_remove = [
+            self._take_arrow_for_animation(previous, node),
+            self._take_arrow_for_animation(node, next_node)
+        ]
+
+        def finish_middle_pointer_changes():
             previous.set_next_address(next_node.address)
             self.add_arrow(previous, next_node)
+            self._fade_deleted_node(node, finished)
 
-        # Keep the pointer change visible briefly before fading the node.
-        QTimer.singleShot(
-            self.DELETE_POINTER_PAUSE_MS,
-            lambda: self._fade_deleted_node(node, finished)
+        self._animate_remove_arrows(
+            arrows_to_remove,
+            finish_middle_pointer_changes
         )
 
+    def _take_arrow_for_animation(
+        self,
+        source,
+        target,
+        arrow_type=None
+    ):
+        """Detach an arrow record so it can be removed visually in stages."""
+        for index, arrow in enumerate(self.arrows):
+            if (
+                arrow.get("source") is source
+                and arrow.get("target") is target
+                and (
+                    arrow_type is None
+                    or arrow.get("type") == arrow_type
+                )
+            ):
+                return self.arrows.pop(index)
+
+        return None
+
+    def _animate_remove_arrows(self, arrows, finished):
+        """
+        Fade arrowheads and line segments one at a time, retracting each arrow
+        from its target back toward its source.
+        """
+        components = []
+
+        for arrow in arrows:
+            if arrow is None:
+                continue
+
+            # create_arrow/create_null_arrow store horizontal, vertical, head.
+            # Reverse this so each connection retracts from its arrowhead first.
+            components.extend(
+                item for item in reversed(arrow["items"])
+                if item is not None
+            )
+
+        def remove_next_component():
+            if not components:
+                finished()
+                return
+
+            item = components.pop(0)
+            animation = QVariantAnimation(self.scene)
+            animation.setDuration(self.DELETE_LINE_FADE_DURATION_MS)
+            animation.setStartValue(1.0)
+            animation.setEndValue(0.0)
+            animation.valueChanged.connect(
+                lambda value, graphic_item=item:
+                    graphic_item.setOpacity(float(value))
+            )
+
+            def component_faded():
+                item.setOpacity(0.0)
+
+                if item.scene() is self.scene:
+                    self.scene.removeItem(item)
+
+                if self._active_delete_animation is animation:
+                    self._active_delete_animation = None
+
+                animation.deleteLater()
+
+                # This short gap makes the sequential removals visually distinct.
+                QTimer.singleShot(
+                    self.DELETE_LINE_PAUSE_MS,
+                    remove_next_component
+                )
+
+            animation.finished.connect(component_faded)
+            self._active_delete_animation = animation
+            animation.start()
+
+        remove_next_component()
+
     def _fade_deleted_node(self, node, finished=None):
-        """Fade a node and its separately rendered memory-address label."""
+        """Fade the deleted node and its separately rendered address label."""
         address_label = getattr(node, "address_label", None)
 
         animation = QVariantAnimation(self.scene)
