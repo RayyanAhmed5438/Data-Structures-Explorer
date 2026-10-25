@@ -9,7 +9,10 @@ from PyQt5.QtWidgets import (
     QFrame,
     QMenu
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from pathlib import Path
+
+from PyQt5.QtCore import Qt, pyqtSignal, QSize
+from PyQt5.QtGui import QIcon
 from applications.music_player.widgets.song_list_widget import SongListWidget
 from core.enums.visualization_mode import VisualizationMode
 
@@ -29,6 +32,19 @@ class MusicPlayerPanel(QWidget):
         super().__init__()
 
         self.selected_index = -1
+
+        # Resolve assets relative to the project root rather than the
+        # terminal's current working directory.
+        project_root = Path(__file__).resolve().parents[3]
+        self.button_assets_dir = (
+            project_root / "assets" / "music_player_buttons"
+        )
+        self.button_icon_paths = {
+            "play": self.button_assets_dir / "play_button.png",
+            "stop": self.button_assets_dir / "stop_button.png",
+            "previous": self.button_assets_dir / "previous_button.png",
+            "next": self.button_assets_dir / "next_button.png",
+        }
 
         self.setupUI()
 
@@ -64,11 +80,11 @@ class MusicPlayerPanel(QWidget):
             border:1px solid #555;
             border-radius:18px;
 
-            min-width:36px;
-            max-width:36px;
+            min-width:42px;
+            max-width:42px;
 
-            min-height:36px;
-            max-height:36px;
+            min-height:42px;
+            max-height:42px;
         }
 
         QPushButton:hover{
@@ -137,10 +153,22 @@ class MusicPlayerPanel(QWidget):
 
         controls = QHBoxLayout()
 
-        self.previous_button = QPushButton("⏮")
-        self.toggle_button = QPushButton("⏹")
-        self.next_button = QPushButton("⏭")
-        
+        self.previous_button = QPushButton()
+        self.toggle_button = QPushButton()
+        self.next_button = QPushButton()
+
+        self._set_button_icon(
+            self.previous_button, "previous", "⏮", "Previous song"
+        )
+        self._set_button_icon(
+            self.next_button, "next", "⏭", "Next song"
+        )
+        self.toggle_button.setIconSize(QSize(24, 24))
+        self.toggle_button.setFixedSize(42, 42)
+        self.toggle_button.setToolTip("Play or pause playback")
+        self.toggle_button.setAccessibleName("Play or pause playback")
+        self.set_playing(False)
+
         self.set_navigation(False, False)
         self.next_button.setEnabled(False)
 
@@ -338,12 +366,40 @@ class MusicPlayerPanel(QWidget):
 
         self.song_list.blockSignals(False)
 
+    def _set_button_icon(self, button, icon_name, fallback_text, tooltip):
+        """Load a project-local PNG icon, falling back to a text symbol."""
+        icon_path = self.button_icon_paths[icon_name]
+
+        if icon_path.is_file():
+            icon = QIcon(str(icon_path))
+            if not icon.isNull():
+                button.setIcon(icon)
+                button.setIconSize(QSize(24, 24))
+                button.setText("")
+                button.setToolTip(tooltip)
+                button.setAccessibleName(tooltip)
+                return True
+
+        # Keep the controls usable if assets have not been copied to this
+        # checkout or the image cannot be loaded.
+        button.setIcon(QIcon())
+        button.setText(fallback_text)
+        button.setToolTip(tooltip)
+        button.setAccessibleName(tooltip)
+        return False
+
     def set_playing(self, playing):  # for button (UI)
 
-        if playing:
-            self.toggle_button.setText("⏸")
-        else:
-            self.toggle_button.setText("▶")
+        icon_name = "stop" if playing else "play"
+        fallback = "⏸" if playing else "▶"
+        tooltip = "Pause playback" if playing else "Play or resume playback"
+
+        self._set_button_icon(
+            self.toggle_button,
+            icon_name,
+            fallback,
+            tooltip
+        )
 
     def set_previous_enabled(self, enabled):
         self.previous_button.setEnabled(enabled)
