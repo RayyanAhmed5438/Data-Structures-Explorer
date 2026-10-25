@@ -193,6 +193,9 @@ class SinglyLinkedListVisualizer:
     NODE_GAP_X = 80
     NODE_GAP_Y = 120
 
+    DELETE_POINTER_PAUSE_MS = 450
+    DELETE_FADE_DURATION_MS = 400
+
     def __init__(self, scene):
 
         self.scene = scene
@@ -203,6 +206,7 @@ class SinglyLinkedListVisualizer:
         self.selected_index = -1
 
         self.animating = False
+        self._active_delete_animation = None
 
         self.null_endpoint = None
         
@@ -282,6 +286,7 @@ class SinglyLinkedListVisualizer:
             )
 
             self.scene.addItem(address_text)
+            node.address_label = address_text
 
             current = current.next
             index += 1
@@ -1144,6 +1149,108 @@ class SinglyLinkedListVisualizer:
             )
 
         step_one()
+
+    def animate_delete(self, index, finished=None):
+        """
+        Animate removal of a node without mutating the underlying linked list.
+
+        The application performs the actual deletion in the finished callback,
+        then refreshes the visualization from the updated data structure.
+        """
+        if self.animating:
+            return
+
+        if index < 0 or index >= len(self.items):
+            if finished:
+                finished()
+            return
+
+        self.animating = True
+
+        node = self.items[index]
+        previous = self.items[index - 1] if index > 0 else None
+        next_node = (
+            self.items[index + 1]
+            if index + 1 < len(self.items)
+            else None
+        )
+
+        # CASE 1: Delete the first node.
+        # Remove its outgoing connection, then fade the node away.
+        if previous is None:
+            if next_node is not None:
+                self.remove_arrow(node, next_node)
+            else:
+                # A single-node list has only its NULL arrow.
+                self.remove_null_arrow(node)
+
+                # There is no list left, so do not leave a floating NULL label.
+                if self.null_endpoint is not None:
+                    self.scene.removeItem(self.null_endpoint)
+                    self.null_endpoint = None
+
+        # CASE 2: Delete the last node.
+        # Redirect the predecessor to NULL before fading the old tail.
+        elif next_node is None:
+            self.remove_arrow(previous, node)
+            self.remove_null_arrow(node)
+
+            previous.set_next_address("NULL")
+            self.reposition_null_endpoint(previous)
+            self.add_null_arrow(previous)
+
+        # CASE 3: Delete a middle node.
+        # Remove both arrows around it and bridge predecessor to successor.
+        else:
+            self.remove_arrow(previous, node)
+            self.remove_arrow(node, next_node)
+
+            previous.set_next_address(next_node.address)
+            self.add_arrow(previous, next_node)
+
+        # Keep the pointer change visible briefly before fading the node.
+        QTimer.singleShot(
+            self.DELETE_POINTER_PAUSE_MS,
+            lambda: self._fade_deleted_node(node, finished)
+        )
+
+    def _fade_deleted_node(self, node, finished=None):
+        """Fade a node and its separately rendered memory-address label."""
+        address_label = getattr(node, "address_label", None)
+
+        animation = QVariantAnimation(self.scene)
+        animation.setDuration(self.DELETE_FADE_DURATION_MS)
+        animation.setStartValue(1.0)
+        animation.setEndValue(0.0)
+
+        def update_opacity(value):
+            opacity = float(value)
+            node.setOpacity(opacity)
+
+            if address_label is not None:
+                address_label.setOpacity(opacity)
+
+        animation.valueChanged.connect(update_opacity)
+
+        def complete():
+            node.setOpacity(0.0)
+
+            if address_label is not None:
+                address_label.setOpacity(0.0)
+
+            self.animating = False
+            if self._active_delete_animation is animation:
+                self._active_delete_animation = None
+
+            animation.deleteLater()
+
+            # MainWindow handles the model deletion and refresh in this callback.
+            if finished:
+                finished()
+
+        animation.finished.connect(complete)
+        self._active_delete_animation = animation
+        animation.start()
 
     def reposition_null_endpoint(self, node):
     

@@ -140,18 +140,15 @@ class VisualizationPanel(QWidget):
 
         self.view.centerOn(x, y)
 
-    def center_on_linked_insert(self, index):
+    def center_on_linked_node(self, index):
 
-        if(
+        if (
             index < 0 or
             index >= len(self.singly_linked_list_visualizer.items)
-            ):
-
+        ):
             return
 
-        node = (
-            self.singly_linked_list_visualizer.items[index]           
-        )
+        node = self.singly_linked_list_visualizer.items[index]
 
         center_x = (
             node.x() + SinglyLinkedListNodeItem.WIDTH / 2
@@ -163,9 +160,11 @@ class VisualizationPanel(QWidget):
 
         self.view.centerOn(center_x, center_y)
 
-        
+    def center_on_linked_insert(self, index):
+        # Keep the existing insertion API while sharing the same centering logic.
+        self.center_on_linked_node(index)
 
-    def smooth_scroll_to_swap(self, first, second):
+        def smooth_scroll_to_swap(self, first, second):
 
         middle = (first + second) / 2
 

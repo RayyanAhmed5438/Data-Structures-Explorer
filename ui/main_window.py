@@ -347,7 +347,15 @@ class MainWindow(QMainWindow):
         if reply != QMessageBox.Yes:
             return
 
-        self.workspace_page.visualization_panel.smooth_scroll_to_index(index)
+        panel = self.workspace_page.visualization_panel
+
+        if (
+            self.current_application.get_visualization_mode()
+            == VisualizationMode.LINKED_LIST
+        ):
+            panel.center_on_linked_node(index)
+        else:
+            panel.smooth_scroll_to_index(index)
 
         self.workspace_page.visualization_panel.animate_delete(
             index,
