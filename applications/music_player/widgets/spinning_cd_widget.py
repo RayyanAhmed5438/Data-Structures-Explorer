@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QTimer, QRectF
+from PyQt5.QtCore import Qt, QTimer, QRectF, QSize
 from PyQt5.QtGui import (
     QColor,
     QFont,
@@ -11,7 +11,7 @@ from PyQt5.QtGui import (
     QPixmap,
     QRadialGradient
 )
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QSizePolicy
 
 
 class SpinningCDWidget(QWidget):
@@ -35,7 +35,15 @@ class SpinningCDWidget(QWidget):
         self._rotation_timer.setInterval(self.TIMER_INTERVAL_MS)
         self._rotation_timer.timeout.connect(self._advance_rotation)
 
-        self.setFixedSize(self.DIAMETER, self.DIAMETER)
+        # Let the widget expand across the music-player card. The CD image
+        # stays circular and centered, but the song title can extend well
+        # beyond the disc before it needs to wrap onto another line.
+        self.setMinimumSize(self.DIAMETER, self.DIAMETER)
+        self.setFixedHeight(self.DIAMETER)
+        self.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Fixed
+        )
         self.setAccessibleName("Spinning CD")
         self.setToolTip(self._title)
 
@@ -222,10 +230,11 @@ class SpinningCDWidget(QWidget):
         return lines or [""]
 
     def _draw_outlined_title(self, painter, diameter):
-        # Use multiple lines and progressively smaller text when needed.
-        # Nothing is elided: the complete song name is drawn on the CD.
-        max_text_width = diameter * 0.72
-        max_text_height = diameter * 0.62
+        # Use the available player-panel width, not the CD's diameter.
+        # Titles may extend beyond the disc and wrap only when they reach
+        # the edges of the wider widget canvas.
+        max_text_width = max(80.0, self.width() - 24.0)
+        max_text_height = max(40.0, self.height() - 18.0)
 
         chosen_font = None
         chosen_metrics = None
