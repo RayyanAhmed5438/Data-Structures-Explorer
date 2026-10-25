@@ -156,29 +156,128 @@ class SpinningCDWidget(QWidget):
             )
         )
 
-    def _draw_outlined_title(self, painter, diameter):
-        font = QFont("Segoe UI", 10, QFont.Bold)
-        metrics = QFontMetricsF(font)
+    @staticmethod
+    def _wrap_title(title, metrics, max_width):
+        """
+        Wrap all title characters into lines without eliding any part.
 
-        # Keep the title inside the inner label area and elide long names.
-        max_text_width = diameter * 0.68
-        display_title = metrics.elidedText(
-            self._title,
-            Qt.ElideMiddle,
-            max_text_width
-        )
+        Ordinary titles wrap at spaces. A single long filename token is split
+        into character chunks so it cannot extend beyond the CD label area.
+        """
+        words = str(title).split()
+        if not words:
+            return [""]
+
+        lines = []
+        current_line = ""
+
+        for word in words:
+            # Break an unusually long word into width-safe chunks first.
+            if metrics.horizontalAdvance(word) > max_width:
+                if current_line:
+                    lines.append(current_line)
+                    current_line = ""
+
+                chunks = []
+                chunk = ""
+
+                for character in word:
+                    candidate = chunk + character
+                    if (
+                        chunk
+                        and metrics.horizontalAdvance(candidate) > max_width
+                    ):
+                        chunks.append(chunk)
+                        chunk = character
+                    else:
+                        chunk = candidate
+
+                if chunk:
+                    chunks.append(chunk)
+
+                # All complete chunks become their own lines; the final
+                # chunk can still share a line with the next word.
+                if len(chunks) > 1:
+                    lines.extend(chunks[:-1])
+
+                current_line = chunks[-1] if chunks else ""
+                continue
+
+            candidate = (
+                f"{current_line} {word}"
+                if current_line
+                else word
+            )
+
+            if metrics.horizontalAdvance(candidate) <= max_width:
+                current_line = candidate
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+        return lines or [""]
+
+    def _draw_outlined_title(self, painter, diameter):
+        # Use multiple lines and progressively smaller text when needed.
+        # Nothing is elided: the complete song name is drawn on the CD.
+        max_text_width = diameter * 0.72
+        max_text_height = diameter * 0.62
+
+        chosen_font = None
+        chosen_metrics = None
+        chosen_lines = None
+
+        for point_size in range(11, 3, -1):
+            font = QFont("Segoe UI", point_size, QFont.Bold)
+            metrics = QFontMetricsF(font)
+            lines = self._wrap_title(
+                self._title,
+                metrics,
+                max_text_width
+            )
+            text_height = metrics.height() * len(lines)
+
+            chosen_font = font
+            chosen_metrics = metrics
+            chosen_lines = lines
+
+            if text_height <= max_text_height:
+                break
 
         text_path = QPainterPath()
-        text_path.addText(0.0, 0.0, font, display_title)
+        line_height = chosen_metrics.height()
+
+        for line_index, line in enumerate(chosen_lines):
+            # addText expects a baseline position.
+            baseline_y = (
+                line_index * line_height
+                + chosen_metrics.ascent()
+            )
+            text_path.addText(
+                0.0,
+                baseline_y,
+                chosen_font,
+                line
+            )
+
         bounds = text_path.boundingRect()
 
+        if bounds.isEmpty():
+            return
+
+        # Center the complete multi-line title on the disc.
         text_path.translate(
             (self.width() - bounds.width()) / 2.0 - bounds.left(),
             (self.height() - bounds.height()) / 2.0 - bounds.top()
         )
 
-        # White fill with a grey stroke creates the requested outlined text.
-        outline = QPen(QColor("#777D85"), 1.6)
+        # White fill with a yellow outline, as requested.
+        outline_width = max(0.9, chosen_font.pointSizeF() * 0.13)
+        outline = QPen(QColor("#FFD700"), outline_width)
         outline.setJoinStyle(Qt.RoundJoin)
 
         painter.setPen(outline)
