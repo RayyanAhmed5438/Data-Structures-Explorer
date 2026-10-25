@@ -14,6 +14,7 @@ from pathlib import Path
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from PyQt5.QtGui import QIcon
 from applications.music_player.widgets.song_list_widget import SongListWidget
+from applications.music_player.widgets.spinning_cd_widget import SpinningCDWidget
 from core.enums.visualization_mode import VisualizationMode
 
 class MusicPlayerPanel(QWidget):
@@ -147,9 +148,7 @@ class MusicPlayerPanel(QWidget):
 
         now = QLabel("Now Playing:-")
 
-        self.song_title = QLabel("No Song Playing")
-        self.song_title.setObjectName("songTitle")
-        self.song_title.setAlignment(Qt.AlignCenter)
+        self.song_title = SpinningCDWidget(self.button_assets_dir)
 
         controls = QHBoxLayout()
 
@@ -179,8 +178,11 @@ class MusicPlayerPanel(QWidget):
         controls.addStretch()
 
         card_layout.addWidget(now)
-        card_layout.addSpacing(6)
-        card_layout.addWidget(self.song_title)
+        card_layout.addSpacing(4)
+        card_layout.addWidget(
+            self.song_title,
+            alignment=Qt.AlignCenter
+        )
         card_layout.addSpacing(10)
         card_layout.addLayout(controls)
 
@@ -400,6 +402,8 @@ class MusicPlayerPanel(QWidget):
             fallback,
             tooltip
         )
+
+        self.song_title.set_spinning(playing)
 
     def set_previous_enabled(self, enabled):
         self.previous_button.setEnabled(enabled)
