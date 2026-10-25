@@ -166,18 +166,18 @@ class VisualizationPanel(QWidget):
 
         def smooth_scroll_to_swap(self, first, second):
 
-        middle = (first + second) / 2
+            middle = (first + second) / 2
 
-        scene_x = (
-            self.array_visualizer.START_X +
-            middle * (
-                self.array_visualizer.BOX_WIDTH +
-                self.array_visualizer.SPACING
-            )+
-            self.array_visualizer.BOX_WIDTH / 2
-        )
+            scene_x = (
+                self.array_visualizer.START_X +
+                middle * (
+                    self.array_visualizer.BOX_WIDTH +
+                    self.array_visualizer.SPACING
+                )+
+                self.array_visualizer.BOX_WIDTH / 2
+            )
 
-        self.smooth_scroll_to(scene_x)
+            self.smooth_scroll_to(scene_x)
 
     def animate_swap(self, first, second, finished=None):
 
