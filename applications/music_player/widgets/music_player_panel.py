@@ -179,10 +179,13 @@ class MusicPlayerPanel(QWidget):
 
         card_layout.addWidget(now)
         card_layout.addSpacing(4)
-        card_layout.addWidget(
-            self.song_title,
-            alignment=Qt.AlignCenter
-        )
+
+        # Do not pass AlignCenter here: an alignment flag prevents the
+        # expanding CD widget from filling the card's available width.
+        # The disc itself is centered inside the widget by its paintEvent,
+        # while the title can use the full player-panel width.
+        card_layout.addWidget(self.song_title)
+
         card_layout.addSpacing(10)
         card_layout.addLayout(controls)
 
