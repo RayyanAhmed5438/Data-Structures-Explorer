@@ -520,7 +520,7 @@ class MainWindow(QMainWindow):
 
         elif (
             self.current_application.get_visualization_mode()
-            == VisualizationMode.ARRAY
+            == VisualizationMode.LINKED_LIST
         ):
             self.workspace_page.visualization_panel.center_on_linked_swap(
                 index, index + 1
