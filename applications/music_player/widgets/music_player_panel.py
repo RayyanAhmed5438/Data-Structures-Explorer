@@ -79,10 +79,10 @@ class MusicPlayerPanel(QWidget):
 
             background:#3A3D42;
             border:1px solid #555;
-            border-radius:18px;
+            border-radius: 30px;
 
-            min-width:42px;
-            max-width:42px;
+            min-width:35px;
+            max-width:35px;
 
             min-height:42px;
             max-height:42px;
@@ -156,6 +156,10 @@ class MusicPlayerPanel(QWidget):
         self.toggle_button = QPushButton()
         self.next_button = QPushButton()
 
+        for x in (self.previous_button, self.toggle_button, self.next_button):
+            x.setObjectName("controls")
+            x.setCursor(Qt.PointingHandCursor)
+
         self._set_button_icon(
             self.previous_button, "previous", "⏮", "Previous song"
         )
@@ -172,6 +176,7 @@ class MusicPlayerPanel(QWidget):
         self.next_button.setEnabled(False)
 
         controls.addStretch()
+        controls.setSpacing(20)
         controls.addWidget(self.previous_button)
         controls.addWidget(self.toggle_button)
         controls.addWidget(self.next_button)
